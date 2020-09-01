@@ -1,0 +1,33 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4.0' apply false
+}
+
+apply from: 'versions.gradle'
+
+wrapper {
+    gradleVersion = "6.6"
+}
+
+allprojects {
+    apply plugin: 'org.jetbrains.kotlin.jvm'
+    apply plugin: 'maven-publish'
+
+    group 'org.spectralpowered.asm'
+    version '1.0.0'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-stdlib"
+        implementation "org.ow2.asm:asm:$asm"
+        implementation "org.ow2.asm:asm-commons:$asm"
+        implementation "org.ow2.asm:asm-util:$asm"
+        implementation "org.ow2.asm:asm-tree:$asm"
+        implementation "com.google.guava:guava:$guava"
+    }
+
+}
