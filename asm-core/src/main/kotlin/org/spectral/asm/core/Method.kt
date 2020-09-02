@@ -1,6 +1,7 @@
 package org.spectral.asm.core
 
 import org.objectweb.asm.Type
+import org.objectweb.asm.tree.LocalVariableNode
 import org.objectweb.asm.tree.MethodNode
 import java.lang.reflect.Modifier
 
@@ -36,6 +37,21 @@ class Method(override val pool: ClassPool, override val owner: Class, override v
      * The method ASM instruction list of this method.
      */
     val instructions = node.instructions
+
+    /**
+     * The local variables defined in this method object.
+     */
+    val locals: List<LocalVariableNode> = node.localVariables
+
+    /**
+     * The maximum size of the stack for this methods.
+     */
+    val maxStack = node.maxStack
+
+    /**
+     * The maximum number of local variables in this method.
+     */
+    val maxLocals = node.maxLocals
 
     override fun isStatic(): Boolean = Modifier.isStatic(access)
 
