@@ -15,7 +15,14 @@ class ClassPool : AbstractPool<Class>() {
     /**
      * The feature processor instance.
      */
-    val featureProcessor = FeatureProcessor(this)
+    private val featureProcessor = FeatureProcessor(this)
+
+    /**
+     * Initialize the pool for processing.
+     */
+    fun init() {
+        featureProcessor.process()
+    }
 
     /**
      * Gets a [Class] from the pool with a given name,
