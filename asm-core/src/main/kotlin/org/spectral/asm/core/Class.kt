@@ -41,12 +41,22 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
     /**
      * The super class of this object.
      */
-    val parent: Class? = pool[node.superName]
+    var parent: Class? = null
 
     /**
-     * The interface class of this object.
+     * The classes which extend this object.
      */
-    val interfaces = node.interfaces.mapNotNull { pool[it] }
+    val children = hashSetOf<Class>()
+
+    /**
+     * The interface classes of this object.
+     */
+    val interfaces = hashSetOf<Class>()
+
+    /**
+     * The classes which implement this object.
+     */
+    val implementers = hashSetOf<Class>()
 
     /**
      * The methods in this class object.
