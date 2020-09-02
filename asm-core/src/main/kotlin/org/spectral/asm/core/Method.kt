@@ -53,6 +53,11 @@ class Method(
     val argumentTypes = type.argumentTypes.toList()
 
     /**
+     * The return type class object.
+     */
+    var returnClass: Class? = null
+
+    /**
      * The method ASM instruction list of this method.
      */
     val instructions = node.instructions
@@ -60,7 +65,7 @@ class Method(
     /**
      * The local variables defined in this method object.
      */
-    val locals: List<LocalVariableNode> = node.localVariables
+    val locals: List<LocalVariableNode> = node.localVariables ?: mutableListOf()
 
     /**
      * The maximum size of the stack for this methods.
@@ -71,6 +76,16 @@ class Method(
      * The maximum number of local variables in this method.
      */
     val maxLocals = node.maxLocals
+
+    /**
+     * A list of the argument local variable objects of this method.
+     */
+    val arguments = mutableListOf<LocalVariable>()
+
+    /**
+     * A list of the local variables objects of this method.
+     */
+    val variables = mutableListOf<LocalVariable>()
 
     override fun isStatic(): Boolean = Modifier.isStatic(access)
 

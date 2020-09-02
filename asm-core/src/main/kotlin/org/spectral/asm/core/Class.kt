@@ -39,6 +39,16 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
     override val access = node.access
 
     /**
+     * Whether the class is an array class or not.
+     */
+    val isArray: Boolean = (name.substring(name.length - 2) == "[]")
+
+    /**
+     * The element class type of the object is an array class.
+     */
+    var elementClass: Class? = null
+
+    /**
      * The super class of this object.
      */
     var parent: Class? = null
@@ -81,7 +91,7 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
          */
         private fun createVirtualClassNode(name: String): ClassNode {
             return ClassNode(ASM8).apply {
-                this.name = name
+                this.name = name.replace(".", "/")
             }
         }
     }
