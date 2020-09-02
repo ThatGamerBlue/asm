@@ -7,6 +7,8 @@ import org.objectweb.asm.Type
  */
 interface Node {
 
+    val real: Boolean
+
     /**
      * The pool this element belongs to.
      */

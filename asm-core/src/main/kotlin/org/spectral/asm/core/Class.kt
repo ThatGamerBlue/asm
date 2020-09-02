@@ -1,5 +1,6 @@
 package org.spectral.asm.core
 
+import org.objectweb.asm.Opcodes.ASM8
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 
@@ -8,9 +9,19 @@ import org.objectweb.asm.tree.ClassNode
  *
  * @property pool
  * @property node
+ * @property real
  * @constructor Create empty Class
  */
-class Class(override val pool: ClassPool, override val node: ClassNode) : Node {
+class Class(override val pool: ClassPool, override val node: ClassNode, override val real: Boolean) : Node {
+
+    /**
+     * Creates a virtual or fake class
+     *
+     * @param pool ClassPool
+     * @param name String
+     * @constructor
+     */
+    constructor(pool: ClassPool, name: String) : this(pool, createVirtualClassNode(name), false)
 
     /**
      * The name of the class element.
@@ -35,19 +46,33 @@ class Class(override val pool: ClassPool, override val node: ClassNode) : Node {
     /**
      * The interface class of this object.
      */
-    val interfaces: List<Class> = node.interfaces.mapNotNull { pool[it] }
+    val interfaces = node.interfaces.mapNotNull { pool[it] }
 
     /**
      * The methods in this class object.
      */
-    val methods: List<Method> = node.methods.map { Method(pool, this, it) }
+    val methods = node.methods.map { Method(pool, this, it, true) }
 
     /**
      * The fields in this class object.
      */
-    val fields: List<Field> = node.fields.map { Field(pool, this, it) }
+    val fields = node.fields.map { Field(pool, this, it, true) }
 
     override fun toString(): String {
         return name
+    }
+
+    companion object {
+        /**
+         * Create a virtual or fake [ClassNode] object.
+         *
+         * @param name String
+         * @return ClassNode
+         */
+        private fun createVirtualClassNode(name: String): ClassNode {
+            return ClassNode(ASM8).apply {
+                this.name = name
+            }
+        }
     }
 }
