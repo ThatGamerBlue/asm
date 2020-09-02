@@ -1,23 +1,37 @@
 package org.spectral.asm.core
 
+import java.util.concurrent.ConcurrentHashMap
+
 /**
  * Abstract pool
  *
  * @param T
  * @constructor Create empty Abstract pool
  */
-abstract class AbstractPool<T> : Pool<T> {
+abstract class AbstractPool<T : Node> : Pool<T> {
 
-    private val elements = mutableListOf<T>()
+    private val elements = ConcurrentHashMap<String, T>()
 
     override val size: Int get() = elements.size
 
     override fun add(element: T): Boolean {
-        return elements.add(element)
+        if(elements.containsKey(element.name)) {
+            return false
+        }
+
+        elements[element.name] = element
+
+        return true
     }
 
     override fun remove(element: T): Boolean {
-        return elements.remove(element)
+        if(!elements.containsKey(element.name)) {
+            return false
+        }
+
+        elements.remove(element.name)
+
+        return true
     }
 
     override fun clear() {
@@ -29,25 +43,21 @@ abstract class AbstractPool<T> : Pool<T> {
     }
 
     override fun forEach(action: (T) -> Unit) {
-        elements.forEach(action)
+        elements.values.forEach(action)
     }
 
     override fun firstOrNull(predicate: (T) -> Boolean): T? {
-        return elements.firstOrNull(predicate)
+        return elements.values.firstOrNull(predicate)
     }
 
     /**
-     * Iterate and run an action for each element in the pool
-     * Provides a [ListIterator] instance to make concurrent modifications to the
-     * backing list.
+     * Gets a element from the pool with a given name.
      *
-     * @param action
-     * @receiver [T] and [MutableIterator]
+     * @param name String
+     * @return T?
      */
-    fun iterate(action: (T, MutableIterator<T>) -> Unit) {
-        val it = elements.listIterator()
-        while(it.hasNext()) {
-            action(it.next(), it)
-        }
+    operator fun get(name: String): T? {
+        return elements[name]
     }
+
 }
