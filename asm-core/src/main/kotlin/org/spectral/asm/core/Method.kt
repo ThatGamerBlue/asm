@@ -58,11 +58,6 @@ class Method(
     var returnClass: Class? = null
 
     /**
-     * The argument type classes.
-     */
-    var argumentClasses = hashSetOf<Class>()
-
-    /**
      * The method ASM instruction list of this method.
      */
     val instructions = node.instructions
