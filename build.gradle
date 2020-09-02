@@ -12,7 +12,7 @@ allprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'maven-publish'
 
-    group 'org.spectralpowered.asm'
+    group 'org.spectral.asm'
     version '1.0.0'
 
     repositories {
@@ -23,11 +23,25 @@ allprojects {
 
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
         implementation "org.ow2.asm:asm:$asm"
         implementation "org.ow2.asm:asm-commons:$asm"
         implementation "org.ow2.asm:asm-util:$asm"
         implementation "org.ow2.asm:asm-tree:$asm"
         implementation "com.google.guava:guava:$guava"
+
+        testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spek"
+        testImplementation "io.mockk:mockk:$mockk"
+        testImplementation "org.jetbrains.kotlin:kotlin-test"
+        testImplementation "com.natpryce:hamkrest:$hamkrest"
+        testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5:$spek"
+        testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect"
+    }
+
+    test {
+        useJUnitPlatform {
+            includeEngines 'spek2'
+        }
     }
 
 }

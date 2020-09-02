@@ -1,4 +1,7 @@
 ext {
     asm = "8.0.1"
     guava = "29.0-jre"
+    spek = "2.0.12"
+    mockk = "1.10.0"
+    hamkrest = "1.7.0.3"
 }
