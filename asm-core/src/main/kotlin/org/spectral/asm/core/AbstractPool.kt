@@ -1,9 +1,10 @@
-package org.spectralpowered.asm.core
+package org.spectral.asm.core
 
 /**
- * An abstract implementation of a pool type.
+ * Abstract pool
  *
  * @param T
+ * @constructor Create empty Abstract pool
  */
 abstract class AbstractPool<T> : Pool<T> {
 
@@ -33,5 +34,20 @@ abstract class AbstractPool<T> : Pool<T> {
 
     override fun firstOrNull(predicate: (T) -> Boolean): T? {
         return elements.firstOrNull(predicate)
+    }
+
+    /**
+     * Iterate and run an action for each element in the pool
+     * Provides a [ListIterator] instance to make concurrent modifications to the
+     * backing list.
+     *
+     * @param action
+     * @receiver [T] and [MutableIterator]
+     */
+    fun iterate(action: (T, MutableIterator<T>) -> Unit) {
+        val it = elements.listIterator()
+        while(it.hasNext()) {
+            action(it.next(), it)
+        }
     }
 }

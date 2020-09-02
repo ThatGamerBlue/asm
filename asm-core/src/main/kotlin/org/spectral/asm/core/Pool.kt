@@ -1,4 +1,4 @@
-package org.spectralpowered.asm.core
+package org.spectral.asm.core
 
 /**
  * A collection or pool of elements.
