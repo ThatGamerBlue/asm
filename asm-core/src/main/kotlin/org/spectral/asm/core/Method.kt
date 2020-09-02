@@ -1,5 +1,6 @@
 package org.spectral.asm.core
 
+import org.objectweb.asm.Opcodes.ASM8
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.LocalVariableNode
 import org.objectweb.asm.tree.MethodNode
@@ -11,9 +12,27 @@ import java.lang.reflect.Modifier
  * @property pool ClassPool
  * @property owner Class
  * @property node MethodNode
+ * @property real Whether this method is of a real type.
  * @constructor
  */
-class Method(override val pool: ClassPool, override val owner: Class, override val node: MethodNode) : ClassMember {
+class Method(
+        override val pool: ClassPool,
+        override val owner: Class,
+        override val node: MethodNode,
+        override val real: Boolean
+) : ClassMember {
+
+    /**
+     * Creates a fake or virtual method
+     *
+     * @param pool ClassPool
+     * @param owner Class
+     * @param name String
+     * @param desc String
+     * @constructor
+     */
+    constructor(pool: ClassPool, owner: Class, name: String, desc: String)
+            : this(pool, owner, createVirtualMethodNode(name, desc), false)
 
     override val name = node.name
 
@@ -73,5 +92,21 @@ class Method(override val pool: ClassPool, override val owner: Class, override v
 
     override fun toString(): String {
         return "$owner.$name$desc"
+    }
+
+    companion object {
+        /**
+         * Creates a blank or virtual method node.
+         *
+         * @param name String
+         * @param desc String
+         * @return MethodNode
+         */
+        private fun createVirtualMethodNode(name: String, desc: String): MethodNode {
+            return MethodNode(ASM8).apply {
+                this.name = name
+                this.desc = desc
+            }
+        }
     }
 }
