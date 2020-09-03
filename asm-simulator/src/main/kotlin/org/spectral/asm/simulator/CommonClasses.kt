@@ -3,7 +3,7 @@ package org.spectral.asm.simulator
 import org.objectweb.asm.Type
 import org.spectral.asm.core.ClassPool
 
-class CommonClasses(private val pool: ClassPool) {
+class CommonClasses(pool: ClassPool) {
 
     /**
      * Common primitive classes.

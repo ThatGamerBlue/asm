@@ -14,7 +14,7 @@ object Simulator {
      *
      * @param method Method
      */
-    fun simulateMethod(method: Method) {
+    fun simulateMethod(method: Method): MethodSimulator {
         val simulator = MethodSimulator(method)
 
         /*
@@ -22,6 +22,6 @@ object Simulator {
          */
         simulator.run()
 
-        println()
+        return simulator
     }
 }
