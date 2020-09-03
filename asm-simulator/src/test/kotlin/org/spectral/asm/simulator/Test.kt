@@ -11,8 +11,8 @@ object Test : Spek({
         pool.insertFrom(File("C:\\Users\\Kyle\\Projects\\Spectral\\workspaces\\spectral-powered\\asm\\gamepack-deob.jar"))
         pool.init()
 
-        val clientClass = pool["client"]!!
-        val initMethod = clientClass.methods.first { it.name == "init" }
+        val clientClass = pool["class18"]!!
+        val initMethod = clientClass.methods.first { it.name == "method209" }
 
         Simulator.simulateMethod(initMethod)
         println()

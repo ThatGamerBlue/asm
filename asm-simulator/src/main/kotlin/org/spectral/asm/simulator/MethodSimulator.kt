@@ -1,8 +1,9 @@
 package org.spectral.asm.simulator
 
+import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import org.objectweb.asm.tree.AbstractInsnNode
+import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.AbstractInsnNode.*
 import org.spectral.asm.core.Class
 import org.spectral.asm.core.Method
@@ -61,7 +62,7 @@ class MethodSimulator(private val method: Method) {
         var frame: ExecFrame
 
         /**
-         * Loop until there are no more frames which have NOT been executed.
+         * Loopcode until there are no more frames which have NOT been executed.
          */
         while(queue.poll().also { frame = it } != null
                 || queueTryCatchBlocks() && queue.poll().also { frame = it } != null
@@ -92,7 +93,7 @@ class MethodSimulator(private val method: Method) {
                 when(opcode) {
 
                     /**
-                     * NOP Opcode, do nothing.
+                     * Nopcode Opcode, do nothing.
                      */
                     NOP -> {}
 
@@ -152,7 +153,429 @@ class MethodSimulator(private val method: Method) {
                         rec.push(array.type!!.elementClass, rec.getNextVarId(VarSource.ARRAY_ELEMENT))
                     }
 
-                    else -> throw IllegalStateException("Unknown opcode $opcode")
+                    /**
+                     * Retreivals
+                     */
+                    
+                    IASTORE, BASTORE, CASTORE, SASTORE, FASTORE, AASTORE -> {
+                        rec.pop()
+                        rec.pop2()
+                    }
+                    LASTORE, DASTORE -> {
+                        rec.pop2()
+                        rec.pop2()
+                    }
+                    POP -> rec.pop()
+                    POP2 -> rec.pop2()
+                    DUP -> rec.push(rec.peek())
+                    DUP_X1 -> {
+                        val a = rec.pop()
+                        val b = rec.pop()
+                        rec.push(a)
+                        rec.push(b)
+                        rec.push(a)
+                    }
+                    DUP_X2 -> {
+                        val a = rec.pop()
+                        if (rec.isTopDoubleSlot) {
+                            val b = rec.popDouble()
+                            rec.push(a)
+                            rec.push(b)
+                        } else {
+                            val b = rec.pop()
+                            val c = rec.pop()
+                            rec.push(a)
+                            rec.push(c)
+                            rec.push(b)
+                        }
+                        rec.push(a)
+                    }
+                    DUP2 -> if (rec.isTopDoubleSlot) {
+                        rec.push(rec.peekDouble())
+                    } else {
+                        val a = rec.pop()
+                        val b = rec.peek()
+                        rec.push(a)
+                        rec.push(b)
+                        rec.push(a)
+                    }
+                    DUP2_X1 -> if (rec.isTopDoubleSlot) {
+                        val a = rec.popDouble()
+                        val b = rec.pop()
+                        rec.push(a)
+                        rec.push(b)
+                        rec.push(a)
+                    } else {
+                        val a = rec.pop()
+                        val b = rec.pop()
+                        val c = rec.pop()
+                        rec.push(b)
+                        rec.push(a)
+                        rec.push(c)
+                        rec.push(b)
+                        rec.push(a)
+                    }
+                    DUP2_X2 -> if (rec.isTopDoubleSlot) {
+                        val a = rec.popDouble()
+                        if (rec.isTopDoubleSlot) {
+                            val b = rec.popDouble()
+                            rec.push(a)
+                            rec.push(b)
+                        } else {
+                            val b = rec.pop()
+                            val c = rec.pop()
+                            rec.push(a)
+                            rec.push(c)
+                            rec.push(b)
+                        }
+                        rec.push(a)
+                    } else {
+                        val a = rec.pop()
+                        val b = rec.pop()
+                        if (rec.isTopDoubleSlot) {
+                            val c = rec.popDouble()
+                            rec.push(b)
+                            rec.push(a)
+                            rec.push(c)
+                        } else {
+                            val c = rec.pop()
+                            val d = rec.pop()
+                            rec.push(b)
+                            rec.push(a)
+                            rec.push(d)
+                            rec.push(c)
+                        }
+                        rec.push(b)
+                        rec.push(a)
+                    }
+                    SWAP -> {
+                        val a = rec.pop()
+                        val b = rec.pop()
+                        rec.push(a)
+                        rec.push(b)
+                    }
+
+                    /**
+                     * Operations
+                     */
+                    
+                    IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IREM, FREM, ISHL, ISHR, IUSHR, IAND, IOR, IXOR -> {
+                        rec.pop()
+                        val arg1 = rec.pop()
+                        rec.push(arg1.type, rec.getNextVarId(VarSource.COMPUTED))
+                    }
+                    LADD, DADD, LSUB, DSUB, LMUL, DMUL, LDIV, DDIV, LREM, DREM, LAND, LOR, LXOR -> {
+                        rec.popDouble()
+                        val arg1 = rec.popDouble()
+                        rec.push(arg1.type, rec.getNextVarId(VarSource.COMPUTED))
+                    }
+                    LSHL, LSHR, LUSHR -> {
+                        rec.pop()
+                        val `var` = rec.popDouble()
+                        rec.push(`var`.type, rec.getNextVarId(VarSource.COMPUTED))
+                    }
+                    INEG, FNEG -> rec.push(
+                            rec.pop().type,
+                            rec.getNextVarId(VarSource.COMPUTED)
+                    )
+                    LNEG, DNEG -> rec.push(
+                            rec.popDouble().type,
+                            rec.getNextVarId(VarSource.COMPUTED)
+                    )
+                    I2L, F2L -> {
+                        rec.pop()
+                        rec.push(rec.common.LONG, rec.getNextVarId(VarSource.CAST))
+                    }
+                    I2F -> {
+                        rec.pop()
+                        rec.push(rec.common.FLOAT, rec.getNextVarId(VarSource.CAST))
+                    }
+                    I2D, F2D -> {
+                        rec.pop()
+                        rec.push(rec.common.DOUBLE, rec.getNextVarId(VarSource.CAST))
+                    }
+                    L2I, D2I -> {
+                        rec.pop2()
+                        rec.push(rec.common.INT, rec.getNextVarId(VarSource.CAST))
+                    }
+                    L2F, D2F -> {
+                        rec.pop2()
+                        rec.push(rec.common.FLOAT, rec.getNextVarId(VarSource.CAST))
+                    }
+                    L2D -> {
+                        rec.pop2()
+                        rec.push(rec.common.DOUBLE, rec.getNextVarId(VarSource.CAST))
+                    }
+                    F2I -> {
+                        rec.pop()
+                        rec.push(rec.common.INT, rec.getNextVarId(VarSource.CAST))
+                    }
+                    D2L -> {
+                        rec.pop2()
+                        rec.push(rec.common.LONG, rec.getNextVarId(VarSource.CAST))
+                    }
+                    I2B -> {
+                        rec.pop()
+                        rec.push(rec.common.BYTE, rec.getNextVarId(VarSource.CAST))
+                    }
+                    I2C -> {
+                        rec.pop()
+                        rec.push(rec.common.CHAR, rec.getNextVarId(VarSource.CAST))
+                    }
+                    I2S -> {
+                        rec.pop()
+                        rec.push(rec.common.SHORT, rec.getNextVarId(VarSource.CAST))
+                    }
+                    LCMP, DCMPL, DCMPG -> {
+                        rec.pop2()
+                        rec.pop2()
+                        rec.push(rec.common.INT, rec.getNextVarId(VarSource.COMPUTED))
+                    }
+                    FCMPL, FCMPG -> {
+                        rec.pop2()
+                        rec.push(rec.common.INT, rec.getNextVarId(VarSource.COMPUTED))
+                    }
+                    IRETURN, LRETURN, FRETURN, DRETURN, ARETURN, RETURN -> {
+                        if (!exitPoints.containsKey(insn)) exitPoints[insn] = null
+                        break@insnLoop
+                    }
+                    ARRAYLENGTH -> {
+                        rec.pop()
+                        rec.push(rec.common.INT, rec.getNextVarId(VarSource.COMPUTED))
+                    }
+                    ATHROW -> {
+                        val ex = rec.pop()
+                        rec.clearStack()
+                        rec.push(ex.type, rec.getNextVarId(VarSource.INT_EXCEPTION)) // same object, but new scope
+                        var handler: LabelNode? = null
+                        for (n in method.node.tryCatchBlocks) {
+                            if (insns.indexOf(n.start) <= index && insns.indexOf(n.end) > index && (n.type == null || method
+                                            .pool[n.type]!!.isAssignableFrom(ex.type!!))
+                            ) {
+                                handler = n.handler
+                                break
+                            }
+                        }
+                        if (handler != null) {
+                            val dstindex = insns.indexOf(handler)
+                            if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex)
+                            rec.jump(dstindex)
+                            index = dstindex
+                        } else {
+                            if (!exitPoints.containsKey(insn)) exitPoints[insn] = null
+                            break@insnLoop
+                        }
+                    }
+                    MONITORENTER, MONITOREXIT -> {
+                        rec.pop()
+                    }
+                    BIPUSH -> rec.push(rec.common.BYTE, rec.getNextVarId(VarSource.CONSTANT))
+                    SIPUSH -> rec.push(rec.common.SHORT, rec.getNextVarId(VarSource.CONSTANT))
+
+                    NEWARRAY -> {
+                        rec.pop()
+                        var arrayType: String = when ((insn as IntInsnNode).operand) {
+                            T_BOOLEAN -> "[Z"
+                            T_CHAR -> "[C"
+                            T_FLOAT -> "[F"
+                            T_DOUBLE -> "[D"
+                            T_BYTE -> "[B"
+                            T_SHORT -> "[S"
+                            T_INT -> "[I"
+                            T_LONG -> "[J"
+                            else -> throw UnsupportedOperationException("unknown NEWARRAY operand: " + insn.operand)
+                        }
+                        rec.push(method.pool.getOrCreate(arrayType), rec.getNextVarId(VarSource.NEW))
+                    }
+                    ILOAD, LLOAD, FLOAD, DLOAD, ALOAD -> {
+                        val lvtindex = (insn as VarInsnNode).`var`
+                        rec.push(rec[lvtindex], rec.getId(lvtindex))
+                    }
+                    ISTORE, FSTORE, ASTORE -> rec[(insn as VarInsnNode).`var`] = rec.pop()
+                    LSTORE, DSTORE -> rec[(insn as VarInsnNode).`var`] = rec.popDouble()
+                    RET -> {
+                        throw UnsupportedOperationException("RET is not supported")
+                    }
+                    NEW -> rec.push(
+                            method.pool
+                                    .getOrCreate(Type.getType((insn as TypeInsnNode).desc)),
+                            rec.getNextVarId(VarSource.NEW)
+                    )
+                    ANEWARRAY -> {
+                        var desc = (insn as TypeInsnNode).desc
+                        desc = if (desc.startsWith("[")) {
+                            "[$desc"
+                        } else {
+                            assert(!desc.startsWith("L"))
+                            "[L$desc;"
+                        }
+                        rec.pop()
+                        rec.push(method.pool.getOrCreate(desc), rec.getNextVarId(VarSource.NEW))
+                    }
+                    CHECKCAST -> {
+                        rec.pop()
+                        rec.push(
+                                method.pool
+                                        .getOrCreate(Type.getType((insn as TypeInsnNode).desc)),
+                                rec.getNextVarId(VarSource.CAST)
+                        )
+                    }
+                    INSTANCEOF -> {
+                        rec.pop()
+                        rec.push(rec.common.INT, rec.getNextVarId(VarSource.COMPUTED))
+                    }
+
+                    IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPGE, IF_ICMPGT, IF_ICMPLE, IF_ACMPEQ, IF_ACMPNE -> {
+                        rec.pop()
+                        rec.pop()
+                        run {
+                            val `in` = insn as JumpInsnNode
+                            val dstindex = insns.indexOf(`in`.label)
+                            if (dstindex != index + 1) {
+                                if (opcode == GOTO) {
+                                    if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex)
+                                    if (!rec.jump(dstindex)) return
+                                    index = dstindex
+                                } else {
+                                    if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex, index + 1)
+                                    val e = ExecFrame(dstindex, rec.currentState)
+                                    if (executed.add(e)) queue.add(e)
+                                }
+                            } else { // no-opcode jump
+                                if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex)
+                            }
+                        }
+                    }
+
+                    IFEQ, IFNE, IFLT, IFGE, IFGT, IFLE, IFNULL, IFNONNULL -> {
+                        rec.pop()
+                        val `in` = insn as JumpInsnNode
+                        val dstindex = insns.indexOf(`in`.label)
+                        if (dstindex != index + 1) {
+                            if (opcode == GOTO) {
+                                if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex)
+                                if (!rec.jump(dstindex)) break@insnLoop
+                                index = dstindex
+                            } else {
+                                if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex, index + 1)
+                                val e = ExecFrame(dstindex, rec.currentState)
+                                if (executed.add(e)) queue.add(e)
+                            }
+                        } else {
+                            if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex)
+                        }
+                    }
+                    GOTO -> {
+                        val `in` = insn as JumpInsnNode
+                        val dstindex = insns.indexOf(`in`.label)
+                        if (dstindex != index + 1) {
+                            if (opcode == GOTO) {
+                                if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex)
+                                if (!rec.jump(dstindex)) break@insnLoop
+                                index = dstindex
+                            } else {
+                                if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex, index + 1)
+                                val e = ExecFrame(dstindex, rec.currentState)
+                                if (executed.add(e)) queue.add(e)
+                            }
+                        } else {
+                            if (!exitPoints.containsKey(insn)) exitPoints[insn] = intArrayOf(dstindex)
+                        }
+                    }
+                    JSR -> {
+                        throw UnsupportedOperationException("JSR is not supported")
+                    }
+                    LDC -> {
+                        val `in` = insn as LdcInsnNode
+                        val `val` = `in`.cst
+                        if (`val` is Int) {
+                            rec.push(rec.common.INT, rec.getNextVarId(VarSource.CONSTANT))
+                        } else if (`val` is Float) {
+                            rec.push(rec.common.FLOAT, rec.getNextVarId(VarSource.CONSTANT))
+                        } else if (`val` is Long) {
+                            rec.push(rec.common.LONG, rec.getNextVarId(VarSource.CONSTANT))
+                        } else if (`val` is Double) {
+                            rec.push(rec.common.DOUBLE, rec.getNextVarId(VarSource.CONSTANT))
+                        } else if (`val` is String) {
+                            rec.push(rec.common.STRING, rec.getNextVarId(VarSource.CONSTANT))
+                        } else if (`val` is Type) {
+                            val type = `val`
+                            when (type.sort) {
+                                Type.OBJECT, Type.ARRAY -> rec.push(
+                                        method.pool.getOrCreate("java/lang/Class"),
+                                        rec.getNextVarId(VarSource.CONSTANT)
+                                )
+                                Type.METHOD -> rec.push(
+                                        method.pool.getOrCreate("java/lang/invoke/MethodType"),
+                                        rec.getNextVarId(VarSource.CONSTANT)
+                                )
+                                else -> throw UnsupportedOperationException("unsupported type sort: " + type.sort)
+                            }
+                        } else {
+                            throw UnsupportedOperationException("unknown ldc constant type: " + `val`.javaClass)
+                        }
+                    }
+                    IINC -> {
+                        val `in` = insn as IincInsnNode
+                        rec[`in`.`var`, rec[`in`.`var`]] = rec.getId(`in`.`var`)
+                    }
+                    TABLESWITCH -> {
+                        val `in` =
+                                insn as TableSwitchInsnNode
+                        rec.pop()
+                        if (!exitPoints.containsKey(insn)) {
+                            val dsts = hashSetOf<LabelNode>()
+                            dsts.addAll(`in`.labels)
+                            dsts.add(`in`.dflt)
+                            exitPoints[insn] = dsts.stream()
+                                    .mapToInt { insnNode: LabelNode? ->
+                                        insns.indexOf(insnNode)
+                                    }.toArray()
+                        }
+                        val state = rec.currentState
+                        for (label in `in`.labels) {
+                            val e = ExecFrame(insns.indexOf(label), state)
+                            if (executed.add(e)) queue.add(e)
+                        }
+                        val dstindex = insns.indexOf(`in`.dflt)
+                        if (!rec.jump(dstindex)) break@insnLoop
+                        index = dstindex
+                    }
+                    LOOKUPSWITCH -> {
+                        val `in` =
+                                insn as LookupSwitchInsnNode
+                        rec.pop()
+                        if (!exitPoints.containsKey(insn)) {
+                            val dsts = hashSetOf<LabelNode>()
+                            dsts.addAll(`in`.labels)
+                            dsts.add(`in`.dflt)
+                            exitPoints[insn] = dsts.stream()
+                                    .mapToInt { insnNode: LabelNode? ->
+                                        insns.indexOf(insnNode)
+                                    }.toArray()
+                        }
+                        val state = rec.currentState
+                        for (label in `in`.labels) {
+                            val e = ExecFrame(insns.indexOf(label), state)
+                            if (executed.add(e)) queue.add(e)
+                        }
+                        val dstindex = insns.indexOf(`in`.dflt)
+                        if (!rec.jump(dstindex)) break@insnLoop
+                        index = dstindex
+                    }
+                    MULTIANEWARRAY -> {
+                        val `in` =
+                                insn as MultiANewArrayInsnNode
+                        val cls = method.pool.getOrCreate(`in`.desc)
+
+                        var i = 0
+                        while (i < `in`.dims) {
+                            rec.pop()
+                            i++
+                        }
+                        rec.push(cls, rec.getNextVarId(VarSource.NEW))
+                    }
+                    else -> throw UnsupportedOperationException("unknown opcode: " + insn.opcode + " (type " + insn.type + ")")
                 }
 
                 if(!rec.next()) break
@@ -179,11 +602,11 @@ class MethodSimulator(private val method: Method) {
             val stack = arrayOf(type)
             val stackVarIds = intArrayOf(rec.getNextVarId(VarSource.EXT_EXCEPTION))
 
-            var idx = insns.indexOf(n.start)
+            var index = insns.indexOf(n.start)
             val max = insns.indexOf(n.end)
 
-            while(idx < max) {
-                val state = rec.states[idx]
+            while(index < max) {
+                val state = rec.states[index]
                 if(state != null) {
                     states.add(ExecState(
                             state.locals.copyOf(state.locals.size),
@@ -193,7 +616,7 @@ class MethodSimulator(private val method: Method) {
                     ))
                 }
 
-                idx++
+                index++
             }
 
             if(states.isEmpty()) continue
