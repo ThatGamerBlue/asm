@@ -17,21 +17,15 @@ class FeatureProcessor(private val pool: ClassPool) {
     /**
      * Processes the class pool and runs each feature extractor.
      */
-    fun process() {
-        pool.forEach { cls ->
-            extractSiblingHierarchy(cls)
+    fun process(cls: Class) {
+        extractSiblingHierarchy(cls)
+
+        cls.methods.forEach { method ->
+            extractMethodTypes(method)
+            extractMethodArguments(method)
         }
 
-        pool.forEach { cls ->
-            cls.methods.forEach { method ->
-                extractMethodTypes(method)
-                extractMethodArguments(method)
-            }
-        }
-
-        pool.forEach { cls ->
-            extractElementClass(cls)
-        }
+        extractElementClass(cls)
     }
 
     /**
@@ -56,7 +50,7 @@ class FeatureProcessor(private val pool: ClassPool) {
      */
     private fun extractElementClass(cls: Class) {
         if(cls.isArray) {
-            cls.elementClass = pool.getOrCreate(cls.name.substring(0, cls.name.length - 2))
+            cls.elementClass = pool.getOrCreate(cls.type.elementType)
         }
     }
 
@@ -67,7 +61,7 @@ class FeatureProcessor(private val pool: ClassPool) {
      * @param method Method
      */
     private fun extractMethodTypes(method: Method) {
-        method.returnClass = pool.getOrCreate(method.returnType.className)
+        method.returnClass = pool.getOrCreate(method.returnType)
     }
 
     /**
@@ -85,7 +79,7 @@ class FeatureProcessor(private val pool: ClassPool) {
 
         for(i in argTypes.indices){
             val type = argTypes[i]
-            val typeClass = method.pool.getOrCreate(type.className.replace(".", "/"))
+            val typeClass = method.pool.getOrCreate(type)
             var asmIndex = -1
             var startInsn = -1
             var endInsn = -1

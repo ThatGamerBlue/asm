@@ -12,7 +12,7 @@ import org.objectweb.asm.tree.ClassNode
  * @property real
  * @constructor Create empty Class
  */
-class Class(override val pool: ClassPool, override val node: ClassNode, override val real: Boolean) : Node {
+class Class(override val pool: ClassPool, override val node: ClassNode, override var type: Type, override val real: Boolean) : Node {
 
     /**
      * Creates a virtual or fake class
@@ -21,17 +21,21 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
      * @param name String
      * @constructor
      */
-    constructor(pool: ClassPool, name: String) : this(pool, createVirtualClassNode(name), false)
+    constructor(pool: ClassPool, name: String) : this(pool, createVirtualClassNode(name), Type.getObjectType(name), false)
+
+    /**
+     * Creates a virtual or fake class of a primitive type.
+     *
+     * @param pool ClassPool
+     * @param type Type
+     * @constructor
+     */
+    constructor(pool: ClassPool, type: Type) : this(pool, createVirtualClassNode(type.className), type, false)
 
     /**
      * The name of the class element.
      */
     override val name = node.name
-
-    /**
-     * The ASM type of the class.
-     */
-    override val type: Type = Type.getObjectType(name)
 
     /**
      * The modifier flags of the class.
@@ -41,7 +45,7 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
     /**
      * Whether the class is an array class or not.
      */
-    val isArray: Boolean = (name.substring(name.length - 2) == "[]")
+    val isArray: Boolean = (type.sort == 9)
 
     /**
      * The element class type of the object is an array class.
@@ -92,6 +96,7 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
         private fun createVirtualClassNode(name: String): ClassNode {
             return ClassNode(ASM8).apply {
                 this.name = name.replace(".", "/")
+                this.superName = "java/lang/Object"
             }
         }
     }

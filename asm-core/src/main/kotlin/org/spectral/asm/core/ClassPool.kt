@@ -1,6 +1,7 @@
 package org.spectral.asm.core
 
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.spectral.asm.core.extractor.FeatureProcessor
 import java.io.File
@@ -21,7 +22,9 @@ class ClassPool : AbstractPool<Class>() {
      * Initialize the pool for processing.
      */
     fun init() {
-        featureProcessor.process()
+        this.forEach { cls ->
+            featureProcessor.process(cls)
+        }
     }
 
     /**
@@ -32,11 +35,38 @@ class ClassPool : AbstractPool<Class>() {
      * @return Class
      */
     fun getOrCreate(name: String): Class {
+        if(name.isEmpty()) {
+            return getOrCreate("java/lang/Object")
+        }
+
         val found = this[name]
 
         if(found == null) {
             val virtualClass = Class(this, name)
             this.add(virtualClass)
+
+            featureProcessor.process(virtualClass)
+
+            return virtualClass
+        }
+
+        return found
+    }
+
+    /**
+     * Gets or creates a virtual class of a given primitive type.
+     *
+     * @param type Type
+     * @return Class
+     */
+    fun getOrCreate(type: Type): Class {
+        val found = this[type.className]
+
+        if(found == null) {
+            val virtualClass = Class(this, type)
+            this.add(virtualClass)
+
+            featureProcessor.process(virtualClass)
 
             return virtualClass
         }
@@ -68,6 +98,6 @@ class ClassPool : AbstractPool<Class>() {
                     }
         }
 
-        nodes.forEach { this.add(Class(this, it, true)) }
+        nodes.forEach { this.add(Class(this, it, Type.getObjectType(it.name),true)) }
     }
 }
