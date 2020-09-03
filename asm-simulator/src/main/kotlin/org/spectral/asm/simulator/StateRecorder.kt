@@ -387,7 +387,7 @@ class StateRecorder(private val method: Method) {
         for(i in 0 until stackSize) {
             val a = oldState.stack[i]
             val b = stack[i]
-            val commonClass = getCommonSuperClass(a, b) ?: throw IllegalStateException("Incompatible stack types: $a, $b")
+            val commonClass = getCommonSuperClass(a, b) //?: throw IllegalStateException("Incompatible stack types: $a, $b")
 
             if(commonClass != a) {
                 if(newStack == null) newStack = oldState.stack.copyOf(stackSize)

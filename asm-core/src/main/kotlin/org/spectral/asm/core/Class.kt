@@ -243,6 +243,8 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
                 ret = cls.getMethod(name, desc)
                 if(ret != null) return ret
 
+                if(cls == cls.parent) break
+
                 cls = cls.parent
             }
 
@@ -325,6 +327,9 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
             cls.interfaces.forEach { i ->
                 if(queued.add(i)) queue.add(i)
             }
+
+            if(cls == cls.parent) break
+
             cls = cls.parent
         }
 

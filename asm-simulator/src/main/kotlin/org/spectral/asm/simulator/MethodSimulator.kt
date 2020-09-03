@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.AbstractInsnNode.*
 import org.spectral.asm.core.Class
 import org.spectral.asm.core.Method
+import org.spectral.asm.core.ext.slotSize
 import java.util.*
 
 /**
@@ -59,7 +60,7 @@ class MethodSimulator(private val method: Method) {
         executed.add(queue.peek())
 
         var first = true
-        var frame: ExecFrame
+        var frame: ExecFrame?
 
         /**
          * Loopcode until there are no more frames which have NOT been executed.
@@ -68,10 +69,10 @@ class MethodSimulator(private val method: Method) {
                 || queueTryCatchBlocks() && queue.poll().also { frame = it } != null
         ) {
 
-            if(!rec.jump(frame.dstIndex, frame.srcState) && !first) continue
+            if(!rec.jump(frame!!.dstIndex, frame!!.srcState) && !first) continue
             first = false
 
-            var index = frame.dstIndex
+            var index = frame!!.dstIndex
 
             insnLoop@ while(index < insns.size()) {
                 val insn = insns[index]
@@ -398,7 +399,7 @@ class MethodSimulator(private val method: Method) {
                     }
                     NEW -> rec.push(
                             method.pool
-                                    .getOrCreate(Type.getType((insn as TypeInsnNode).desc)),
+                                    .getOrCreate((insn as TypeInsnNode).desc),
                             rec.getNextVarId(VarSource.NEW)
                     )
                     ANEWARRAY -> {
@@ -416,7 +417,7 @@ class MethodSimulator(private val method: Method) {
                         rec.pop()
                         rec.push(
                                 method.pool
-                                        .getOrCreate(Type.getType((insn as TypeInsnNode).desc)),
+                                        .getOrCreate((insn as TypeInsnNode).desc),
                                 rec.getNextVarId(VarSource.CAST)
                         )
                     }
@@ -575,12 +576,63 @@ class MethodSimulator(private val method: Method) {
                         }
                         rec.push(cls, rec.getNextVarId(VarSource.NEW))
                     }
+
+                    INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC, INVOKEINTERFACE -> {
+                        val invoke = insn as MethodInsnNode
+                        handleMethodInvoke(invoke.owner, invoke.name, invoke.desc, invoke.itf, opcode == INVOKESTATIC)
+                    }
+
+                    GETSTATIC, PUTSTATIC, GETFIELD, PUTFIELD -> {
+                        val ref = insn as FieldInsnNode
+                        val field = method.pool[ref.owner]?.resolveField(ref.name, ref.desc)
+                                ?: throw IllegalArgumentException("Unknown field reference. '${ref.owner}.${ref.name}'")
+
+                        val isWrite = opcode == PUTFIELD || opcode == PUTSTATIC
+
+                        /*
+                         * If this is a put reference to a field.
+                         */
+                        if(isWrite) {
+                            if(field.type.slotSize == 1) {
+                                rec.pop()
+                            } else {
+                                rec.popDouble()
+                            }
+                        }
+
+                        /*
+                         * Object reference instruction
+                         */
+                        if(opcode == GETFIELD || opcode == PUTFIELD) {
+                            rec.pop()
+                        }
+
+                        if(!isWrite) rec.push(method.pool.getOrCreate(field.type), rec.getNextVarId(VarSource.FIELD))
+                    }
+
                     else -> throw UnsupportedOperationException("unknown opcode: " + insn.opcode + " (type " + insn.type + ")")
                 }
 
                 if(!rec.next()) break
                 index++
             }
+        }
+    }
+
+    private fun handleMethodInvoke(owner: String, name: String, desc: String, itf: Boolean, isStatic: Boolean) {
+        val target = method.pool[owner]?.resolveMethod(name, desc, itf)?.type ?: Type.getMethodType(desc)
+
+        for(i in target.argumentTypes.indices.reversed()) {
+            if(target.argumentTypes[i].slotSize == 1) {
+                rec.pop()
+            } else {
+                rec.popDouble()
+            }
+        }
+
+        if(!isStatic) rec.pop()
+        if(method.pool.getOrCreate(target.returnType) != rec.common.VOID) {
+            rec.push(method.pool.getOrCreate(target.returnType), rec.getNextVarId(VarSource.METHOD_RETURN))
         }
     }
 

@@ -34,13 +34,17 @@ class FeatureProcessor(private val pool: ClassPool) {
      * @param cls Class
      */
     private fun extractSiblingHierarchy(cls: Class) {
-        if(cls.node.superName != null) {
+        if(!cls.real) return
+
+        if(cls.parent == null && cls.node.superName != null) {
             cls.parent = pool.getOrCreate(cls.node.superName)
             cls.parent?.children?.add(cls)
         }
 
-        cls.interfaces.addAll(cls.node.interfaces.map { pool.getOrCreate(it) })
-        cls.interfaces.forEach { it.implementers.add(cls) }
+        if(cls.interfaces.isEmpty()) {
+            cls.interfaces.addAll(cls.node.interfaces.map { pool.getOrCreate(it) })
+            cls.interfaces.forEach { it.implementers.add(cls) }
+        }
     }
 
     /**
