@@ -2,6 +2,7 @@ package org.spectral.asm.simulator
 
 import org.objectweb.asm.Type
 import org.spectral.asm.core.Method
+import org.spectral.asm.core.ext.isPrimitive
 import org.spectral.asm.core.ext.slotSize
 import java.util.*
 import kotlin.math.min
@@ -141,7 +142,77 @@ class StateRecorder(val method: Method) {
         var newLocals: Array<Type?>? = null
         var newLocalVarIds: IntArray? = null
 
-        return oldState
+        val max = min(oldState.locals.size, localsSize)
+        for(i in 0 until max) {
+            val a = oldState.locals[i]
+            val b = locals[i]
+            val common = CommonClasses.getCommonType(a, b)
+
+            if(common != a) {
+                if(newLocals == null) {
+                    newLocals = oldState.locals.copyOf(max)
+                }
+
+                newLocals[i] = common
+            }
+
+            if(common != null) {
+                lastUsed = i
+            } else if(oldState.localVarIds[i] != 0) {
+                if(newLocalVarIds == null) {
+                    newLocalVarIds = oldState.localVarIds.copyOf(max)
+                }
+
+                newLocalVarIds[i] = 0
+            }
+
+            if(localVarIds[i] != oldState.localVarIds[i]) {
+                // todo record variable id map
+            }
+        }
+
+        if(newLocals == null) {
+            newLocals = oldState.locals
+        }
+
+        if(lastUsed + 1 != newLocals.size) {
+            newLocals = newLocals.copyOf(lastUsed + 1)
+            newLocalVarIds = (if(newLocalVarIds == null) oldState.localVarIds else newLocalVarIds)
+                    .copyOf(lastUsed + 1)
+        }
+        else if(newLocalVarIds == null) {
+            newLocalVarIds = oldState.localVarIds
+        }
+
+        if(stackSize != oldState.stack.size) {
+            throw IllegalStateException("Mismatching stack sizes")
+        }
+
+        var newStack: Array<Type?>? = null
+
+        for(i in 0 until stackSize) {
+            val a = oldState.stack[i]
+            val b = stack[i]
+            val common = CommonClasses.getCommonType(a, b)
+
+            if(common != a) {
+                if(newStack == null) {
+                    newStack = oldState.stack.copyOf(stackSize)
+                }
+
+                newStack[i] = common
+            }
+
+            if(stackVarIds[i] != oldState.stackVarIds[i]) {
+                // todo record variable identifier map ids
+            }
+        }
+
+        if(newStack == null) {
+            newStack = oldState.stack
+        }
+
+        return ExecutionState(newLocals, newLocalVarIds, newStack, oldState.stackVarIds)
     }
 
     /**
@@ -181,5 +252,14 @@ class StateRecorder(val method: Method) {
 
         varSources[nextVarId] = source
         return ++nextVarId
+    }
+
+    /**
+     * Gets an [ExecutionState] object of the current state recorder's execution state.
+     *
+     * @return ExecutionState
+     */
+    fun getState(): ExecutionState {
+        return ExecutionState(locals, localVarIds, localsSize, stack, stackVarIds, stackSize)
     }
 }

@@ -68,7 +68,6 @@ class FeatureProcessor(private val pool: ClassPool) {
      */
     private fun extractMethodTypes(method: Method) {
         method.returnClass = pool.getOrCreate(method.returnType.className)
-        method.argumentClasses.addAll(method.argumentTypes.map { pool.getOrCreate(it.className) })
     }
 
     /**
