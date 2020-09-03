@@ -35,5 +35,9 @@ private constructor(
         this.interpreter.blockHandler = blockHandler
     }
 
-
+    companion object {
+        /**
+         * Common class types.
+         */
+    }
 }

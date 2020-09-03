@@ -11,23 +11,23 @@ import org.spectral.asm.core.ext.slotSize
  * Represents an abstract value at a given frame.
  *
  * @property insns MutableList<AbstractInsnNode>
- * @property cls Class
+ * @property element Class
  * @property value Any?
  * @constructor
  */
-abstract class AbstractValue(val insns: MutableList<AbstractInsnNode>, val cls: Class, val value: Any?) : Value {
+abstract class AbstractValue(val insns: MutableList<AbstractInsnNode>, val element: Class?, val value: Any?) : Value {
 
     /**
      * Creates a value with an optional instruction
      *
      * @param insn AbstractInsnNode?
-     * @param cls Class
+     * @param element Class
      * @param value Any?
      * @constructor
      */
-    constructor(insn: AbstractInsnNode?, cls: Class, value: Any?) : this(
+    constructor(insn: AbstractInsnNode?, element: Class?, value: Any?) : this(
             if(insn == null) mutableListOf() else mutableListOf(insn),
-            cls,
+            element,
             value
     )
 
@@ -95,12 +95,12 @@ abstract class AbstractValue(val insns: MutableList<AbstractInsnNode>, val cls: 
     /**
      * Whether the value is an array type.
      */
-    val isArray: Boolean get() = cls.isArray
+    val isArray: Boolean get() = element?.isArray ?: false
 
     /**
      * The ASM [Type] of the value's class
      */
-    val type: Type get() = cls.type
+    val type: Type get() = element?.type ?: Type.getObjectType("null")
 
     /**
      * Gets the element size on the stack.

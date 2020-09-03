@@ -7,6 +7,13 @@ import org.objectweb.asm.tree.analysis.Interpreter
 import org.spectral.asm.simulator.controlflow.BlockHandler
 import org.spectral.asm.simulator.value.AbstractValue
 
+/**
+ * Responsible for interpreting a method's bytecode and simulating
+ * its execution result.
+ *
+ * @property simulator MethodSimulator
+ * @property blockHandler BlockHandler
+ */
 class ExecutionInterpreter : Interpreter<AbstractValue>(ASM8) {
 
     lateinit var simulator: MethodSimulator
