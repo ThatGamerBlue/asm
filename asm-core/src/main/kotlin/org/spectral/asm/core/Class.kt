@@ -1,5 +1,6 @@
 package org.spectral.asm.core
 
+import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.ACC_INTERFACE
 import org.objectweb.asm.Opcodes.ASM8
 import org.objectweb.asm.Type
@@ -197,6 +198,224 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
         }
 
         return objCls
+    }
+
+    /**
+     * Gets a [Method] object given the name and descriptor within
+     * the current class.
+     *
+     * @param name String
+     * @param desc String
+     * @return Method?
+     */
+    fun getMethod(name: String, desc: String): Method? {
+        return methods.firstOrNull { it.name == name && it.desc == desc }
+    }
+
+    /**
+     * Gets a [Field] objects given the name nd descriptor within
+     * the current class.
+     *
+     * @param name String
+     * @param desc String
+     * @return Field?
+     */
+    fun getField(name: String, desc: String): Field? {
+        return fields.firstOrNull { it.name == name && it.desc == desc }
+    }
+
+    /**
+     * Resolves a [Method] object from the current class or following
+     * the JVM resolution patterns from inheritors.
+     *
+     * @param name String
+     * @param desc String
+     * @param toInterface Boolean
+     * @return Method?
+     */
+    fun resolveMethod(name: String, desc: String, toInterface: Boolean): Method? {
+        if(!toInterface) {
+            var ret = getMethod(name, desc)
+            if(ret != null) return ret
+
+            var cls = this.parent
+            while(cls != null) {
+                ret = cls.getMethod(name, desc)
+                if(ret != null) return ret
+
+                cls = cls.parent
+            }
+
+            return this.resolveInterfaceMethod(name, desc)
+        } else {
+            var ret = this.getMethod(name, desc)
+            if(ret != null) return ret
+
+            if(parent != null) {
+                ret = parent!!.getMethod(name, desc)
+                if(ret != null
+                        && (ret.access and (Opcodes.ACC_PUBLIC or Opcodes.ACC_STATIC)) == Opcodes.ACC_PUBLIC) {
+                    return ret
+                }
+            }
+
+            return resolveInterfaceMethod(name, desc)
+        }
+    }
+
+    /**
+     * Resolves a [Field] object from the current class or following the JVM
+     * resolution patterns from inheritors.
+     *
+     * @param name String
+     * @param desc String
+     * @return Field?
+     */
+    fun resolveField(name: String, desc: String): Field? {
+        var ret = getField(name, desc)
+        if(ret != null) return ret
+
+        if(interfaces.isNotEmpty()) {
+            val queue = ArrayDeque<Class>()
+            queue.addAll(interfaces)
+
+            var cls = queue.pollFirst()
+            while(cls != null) {
+                ret = cls.getField(name, desc)
+                if(ret != null) return ret
+
+                cls.interfaces.forEach { i ->
+                    queue.addFirst(i)
+                }
+
+                cls = queue.pollFirst()
+            }
+        }
+
+        var cls = parent
+        while(cls != null) {
+            ret = cls.getField(name, desc)
+            if(ret != null) return ret
+
+            cls = cls.parent
+        }
+
+        return null
+    }
+
+    /**
+     * Resolves a method given a name and descriptor following the JVM
+     * inheritor specifications.
+     *
+     * @param name String
+     * @param desc String
+     * @return Method?
+     */
+    private fun resolveInterfaceMethod(name: String, desc: String): Method? {
+        val queue = ArrayDeque<Class>()
+        val queued = hashSetOf<Class>()
+
+        /*
+         * Loop through all the super classes and add
+         * them to the queue if not already queued. As well as all
+         * implemented interfaces.
+         */
+        var cls = this.parent
+        while(cls != null) {
+            cls.interfaces.forEach { i ->
+                if(queued.add(i)) queue.add(i)
+            }
+            cls = cls.parent
+        }
+
+        if(queue.isEmpty()) return null
+
+        val matches = hashSetOf<Method>()
+        var foundNonAbstract = false
+
+        /*
+         * Loop through the queue and find any abstract methods
+         * first.
+         */
+        cls = queue.poll()
+        while(cls != null) {
+            val ret = cls.getMethod(name, desc)
+            if (ret != null
+                    && ret.access and (Opcodes.ACC_PRIVATE or Opcodes.ACC_STATIC) == 0
+            ) {
+                matches.add(ret)
+
+                /*
+                 * Detect if the method is a non-abstract implementation.
+                 */
+                if (ret.access and Opcodes.ACC_ABSTRACT == 0) {
+                    foundNonAbstract = true
+                }
+            }
+
+            cls.interfaces.forEach { i ->
+                if (queued.add(i)) queue.add(i)
+            }
+
+            cls = queue.poll()
+        }
+
+        if(matches.isEmpty()) return null
+        if(matches.size == 1) return matches.iterator().next()
+
+        /*
+         * Non-abstract methods take priority for resolution over abstract ones.
+         * Remove all abstract methods if any are found.
+         */
+        if(foundNonAbstract) {
+            val it = matches.iterator()
+            while(it.hasNext()) {
+                val m = it.next()
+
+                if(m.access and Opcodes.ACC_ABSTRACT != 0) {
+                    it.remove()
+                }
+            }
+
+            if(matches.size == 1) return matches.iterator().next()
+        }
+
+        /*
+         * Remove non-max specific method declarations. (Any that have child method matches)
+         */
+        val it = matches.iterator()
+        while(it.hasNext()) {
+            val m = it.next()
+
+            cmpLoop@ for(m2 in matches) {
+                if(m2 == m) continue
+
+                if(m2.owner.interfaces.contains(m.owner)) {
+                    it.remove()
+                    break
+                }
+
+                queue.addAll(m2.owner.interfaces)
+
+                cls = queue.poll()
+                while(cls != null) {
+                    if(cls.interfaces.contains(m.owner)) {
+                        it.remove()
+                        queue.clear()
+                        break@cmpLoop
+                    }
+
+                    queue.addAll(cls.interfaces)
+
+                    cls = queue.poll()
+                }
+            }
+        }
+
+        /*
+         * Return the closest JVM specific match.
+         */
+        return matches.iterator().next()
     }
 
     override fun toString(): String {
