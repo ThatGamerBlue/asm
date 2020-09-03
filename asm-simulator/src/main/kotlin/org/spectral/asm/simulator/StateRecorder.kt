@@ -61,7 +61,7 @@ class StateRecorder(private val method: Method) {
     /**
      * Common primitive classes from the method's class pool
      */
-    private val common = CommonClasses(method.pool)
+    val common = CommonClasses(method.pool)
 
     /**
      * Initialize the state recorder.
@@ -205,6 +205,13 @@ class StateRecorder(private val method: Method) {
     val isTopDoubleSlot: Boolean get() {
         val element = stack[stackSize - 2]
         return element != null && element.type.slotSize == 2
+    }
+
+    /**
+     * Gets an [ExecState] instance for the current state of this recorder object.
+     */
+    val currentState: ExecState get() {
+        return ExecState(locals, localVarIds, localsSize, stack, stackVarIds, stackSize)
     }
 
     /**
