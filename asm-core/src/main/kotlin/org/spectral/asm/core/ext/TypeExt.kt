@@ -8,3 +8,8 @@ val Type.slotSize: Int get() {
 
     return if(start == 'D' || start == 'J') 2 else 1
 }
+
+fun Type.isPrimitive(): Boolean {
+    val start = this.internalName[0]
+    return start != 'L' && start != '['
+}
