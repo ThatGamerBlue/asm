@@ -1,3 +1,8 @@
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
     api project(":asm-core")
+    implementation 'com.github.Col-E:SimAnalyzer:1.4.2'
 }

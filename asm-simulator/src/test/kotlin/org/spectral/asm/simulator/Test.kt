@@ -14,7 +14,6 @@ object Test : Spek({
         val clientClass = pool["client"]!!
         val initMethod = clientClass.methods.first { it.name == "init" }
 
-        Simulator.simulateMethod(initMethod)
         println()
     }
 })

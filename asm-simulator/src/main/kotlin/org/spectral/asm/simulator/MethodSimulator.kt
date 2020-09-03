@@ -1,20 +1,39 @@
 package org.spectral.asm.simulator
 
+import org.objectweb.asm.tree.analysis.Analyzer
 import org.spectral.asm.core.Method
+import org.spectral.asm.simulator.controlflow.BlockHandler
+import org.spectral.asm.simulator.value.AbstractValue
+
+class MethodSimulator
 
 /**
- * Responsible for executing a method and depending on the
- * method instruction opcode at a given frame, recording the states.
+ * Private constructor.
  *
  * @property method Method
+ * @property interpreter ExecutionInterpreter
  * @constructor
  */
-class MethodSimulator(private val method: Method) {
+private constructor(
+        val method: Method,
+        val interpreter: ExecutionInterpreter
+) : Analyzer<AbstractValue>(interpreter) {
 
     /**
-     * Runs the method execution simulation.
+     * The control flow block handler.
      */
-    fun run() {
+    val blockHandler = BlockHandler(method)
 
+    /**
+     * Primary constructor.
+     *
+     * @param method Method
+     * @constructor
+     */
+    constructor(method: Method) : this(method, ExecutionInterpreter()) {
+        this.interpreter.simulator = this
+        this.interpreter.blockHandler = blockHandler
     }
+
+
 }
