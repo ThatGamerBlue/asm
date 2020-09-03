@@ -258,6 +258,47 @@ class StateRecorder(private val method: Method) {
     }
 
     /**
+     * Continue to the next execution step.
+     *
+     * @return Boolean
+     */
+    operator fun next(): Boolean {
+        index++
+        return updateState()
+    }
+
+    /**
+     * Jump to an execution state at a given execution index.
+     *
+     * @param dst Int
+     * @return Boolean
+     */
+    fun jump(dst: Int): Boolean {
+        index = dst
+        return updateState()
+    }
+
+    /**
+     * Jump to a specific execution index from a source execution state.
+     *
+     * @param dst Int
+     * @param src ExecState
+     * @return Boolean
+     */
+    fun jump(dst: Int, src: ExecState): Boolean {
+        System.arraycopy(src.locals, 0, locals, 0, src.locals.size)
+        System.arraycopy(src.localVarIds, 0, localVarIds, 0, src.locals.size)
+        System.arraycopy(src.stack, 0, stack, 0, src.stack.size)
+        System.arraycopy(src.stackVarIds, 0, stackVarIds, 0, src.stack.size)
+
+        localsSize = src.locals.size
+        stackSize = src.stack.size
+        index = dst
+
+        return updateState()
+    }
+
+    /**
      * Saves a snapshot of the current state of the execution.
      *
      * @return Boolean
