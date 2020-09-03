@@ -15,6 +15,13 @@ object Simulator {
      * @param method Method
      */
     fun simulateMethod(method: Method) {
+        val simulator = MethodSimulator(method)
 
+        /*
+         * Run the simulator
+         */
+        simulator.run()
+
+        println()
     }
 }

@@ -1,8 +1,10 @@
 package org.spectral.asm.simulator
 
 import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.AbstractInsnNode.*
+import org.spectral.asm.core.Class
 import org.spectral.asm.core.Method
 import java.util.*
 
@@ -58,7 +60,13 @@ class MethodSimulator(private val method: Method) {
         var first = true
         var frame: ExecFrame
 
-        while(queue.poll().also { frame = it } != null) {
+        /**
+         * Loop until there are no more frames which have NOT been executed.
+         */
+        while(queue.poll().also { frame = it } != null
+                || queueTryCatchBlocks() && queue.poll().also { frame = it } != null
+        ) {
+
             if(!rec.jump(frame.dstIndex, frame.srcState) && !first) continue
             first = false
 
@@ -144,9 +152,64 @@ class MethodSimulator(private val method: Method) {
                         rec.push(array.type!!.elementClass, rec.getNextVarId(VarSource.ARRAY_ELEMENT))
                     }
 
-
+                    else -> throw IllegalStateException("Unknown opcode $opcode")
                 }
+
+                if(!rec.next()) break
+                index++
             }
         }
+    }
+
+    /**
+     * Queue the try-catch blocks as individual control flow frames.
+     *
+     * @return Boolean
+     */
+    private fun queueTryCatchBlocks(): Boolean {
+        if(method.node.tryCatchBlocks.isEmpty()) return false
+        val states = hashSetOf<ExecState>()
+        var ret = false
+
+        for(n in method.node.tryCatchBlocks) {
+            val type: Class? = if(n.type != null) method.pool
+                    .getOrCreate(Type.getObjectType(n.type)) else method.pool
+                    .getOrCreate("java/lang/Throwable")
+
+            val stack = arrayOf(type)
+            val stackVarIds = intArrayOf(rec.getNextVarId(VarSource.EXT_EXCEPTION))
+
+            var idx = insns.indexOf(n.start)
+            val max = insns.indexOf(n.end)
+
+            while(idx < max) {
+                val state = rec.states[idx]
+                if(state != null) {
+                    states.add(ExecState(
+                            state.locals.copyOf(state.locals.size),
+                            state.localVarIds.copyOf(state.locals.size),
+                            stack,
+                            stackVarIds
+                    ))
+                }
+
+                idx++
+            }
+
+            if(states.isEmpty()) continue
+
+            val dstIndex = insns.indexOf(n.handler)
+            for(state in states) {
+                val exception = ExecFrame(dstIndex, state)
+                if(executed.add(exception)) {
+                    queue.add(exception)
+                    ret = true
+                }
+            }
+
+            states.clear()
+        }
+
+        return ret
     }
 }

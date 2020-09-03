@@ -15,5 +15,6 @@ object Test : Spek({
         val initMethod = clientClass.methods.first { it.name == "init" }
 
         Simulator.simulateMethod(initMethod)
+        println()
     }
 })
