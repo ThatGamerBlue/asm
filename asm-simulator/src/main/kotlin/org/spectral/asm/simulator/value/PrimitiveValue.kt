@@ -60,6 +60,27 @@ class PrimitiveValue(insns: List<AbstractInsnNode>, type: Type, value: Any?) : A
         return type == other.type
     }
 
+    /**
+     * Value getter methods
+     */
+
+    /**
+     * Mathematical Operation Methods
+     */
+
+    infix fun AbstractInsnNode.add(other: AbstractValue): PrimitiveValue {
+        val common = commonMathType(this@PrimitiveValue.type, other.type)
+        val merged = combine(this@PrimitiveValue.insns, other.insns, this)
+        if(isValueUnresolved || other.isValueUnresolved) {
+            return PrimitiveValue(merged, common)
+        }
+
+        /*
+         * TODO Implement numerical addition support
+         */
+        return PrimitiveValue(merged, common)
+    }
+
     companion object {
 
         /**
