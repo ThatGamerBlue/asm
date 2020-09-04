@@ -131,4 +131,46 @@ abstract class AbstractValue(val insns: List<AbstractInsnNode>, val type: Type, 
     override fun getSize(): Int {
         return type.slotSize
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as AbstractValue
+
+        if (insns != other.insns) return false
+        if (type != other.type) return false
+        if (value != other.value) return false
+        if (nullCheck != other.nullCheck) return false
+        if (copySource != other.copySource) return false
+        if (pushed != other.pushed) return false
+        if (pops != other.pops) return false
+        if (isPrimitive != other.isPrimitive) return false
+        if (isReference != other.isReference) return false
+        if (isValueResolved != other.isValueResolved) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = insns.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + (value?.hashCode() ?: 0)
+        result = 31 * result + (nullCheck?.hashCode() ?: 0)
+        result = 31 * result + (copySource?.hashCode() ?: 0)
+        result = 31 * result + pushed.hashCode()
+        result = 31 * result + pops.hashCode()
+        result = 31 * result + isPrimitive.hashCode()
+        result = 31 * result + isReference.hashCode()
+        result = 31 * result + isValueResolved.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return when {
+            this == UninitializedValue.UNINITIALIZED_VALUE -> "[UNINITIALIZED]"
+            isNull -> "[$type:NULL]"
+            else -> "[$type:$value]"
+        }
+    }
 }
