@@ -19,24 +19,6 @@ import java.util.*
 class Class(override val pool: ClassPool, override val node: ClassNode, override var type: Type, override val real: Boolean) : Node {
 
     /**
-     * Creates a virtual or fake class
-     *
-     * @param pool ClassPool
-     * @param name String
-     * @constructor
-     */
-    constructor(pool: ClassPool, name: String) : this(pool, createVirtualClassNode(name), Type.getObjectType(name), false)
-
-    /**
-     * Creates a virtual or fake class of a primitive type.
-     *
-     * @param pool ClassPool
-     * @param type Type
-     * @constructor
-     */
-    constructor(pool: ClassPool, type: Type) : this(pool, createVirtualClassNode(type.className), type, false)
-
-    /**
      * The name of the class element.
      */
     override val name = node.name
@@ -85,6 +67,24 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
      * The fields in this class object.
      */
     val fields = node.fields.map { Field(pool, this, it, true) }
+
+    /**
+     * Creates a virtual or fake class
+     *
+     * @param pool ClassPool
+     * @param name String
+     * @constructor
+     */
+    constructor(pool: ClassPool, name: String) : this(pool, createVirtualClassNode(name), Type.getObjectType(name), false)
+
+    /**
+     * Creates a virtual or fake class of a primitive type.
+     *
+     * @param pool ClassPool
+     * @param type Type
+     * @constructor
+     */
+    constructor(pool: ClassPool, type: Type) : this(pool, createVirtualClassNode(type.className), type, false)
 
     /**
      * Gets whether the current class is an interface class or not.
