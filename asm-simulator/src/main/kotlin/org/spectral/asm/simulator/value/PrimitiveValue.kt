@@ -64,22 +64,29 @@ class PrimitiveValue(insns: List<AbstractInsnNode>, type: Type, value: Any?) : A
      * Value getter methods
      */
 
+    fun getBooleanValue(): Boolean {
+        return (value as Number).toInt() > 1
+    }
+
+    fun getIntValue(): Int {
+        return (value as Number).toInt()
+    }
+
+    fun getFloatValue(): Float {
+        return (value as Number).toFloat()
+    }
+
+    fun getDoubleValue(): Double {
+        return (value as Number).toDouble()
+    }
+
+    fun getLongValue(): Long {
+        return (value as Number).toLong()
+    }
+
     /**
      * Mathematical Operation Methods
      */
-
-    infix fun AbstractInsnNode.add(other: AbstractValue): PrimitiveValue {
-        val common = commonMathType(this@PrimitiveValue.type, other.type)
-        val merged = combine(this@PrimitiveValue.insns, other.insns, this)
-        if(isValueUnresolved || other.isValueUnresolved) {
-            return PrimitiveValue(merged, common)
-        }
-
-        /*
-         * TODO Implement numerical addition support
-         */
-        return PrimitiveValue(merged, common)
-    }
 
     companion object {
 
