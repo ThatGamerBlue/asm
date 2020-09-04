@@ -15,3 +15,13 @@ fun <T> combine(src: List<T>, additional: List<T>): List<T> {
 fun <T> combine(src: List<T>, src2: List<T>, additional: T): List<T> {
     return combine(combine(src, src2), additional)
 }
+
+fun <T> distinct(src: List<T>): List<T> {
+    val copy = mutableListOf<T>()
+    src.forEach { t ->
+        if(copy.contains(t)) return@forEach
+        copy.add(t)
+    }
+
+    return copy
+}

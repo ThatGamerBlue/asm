@@ -74,6 +74,10 @@ class VirtualValue(insns: List<AbstractInsnNode>, type: Type, value: Any?) : Abs
             return VirtualValue(insn, type, Unresolved(type))
         }
 
+        fun ofVirtual(insns: List<AbstractInsnNode>, type: Type): VirtualValue {
+            return VirtualValue(insns, type, Unresolved(type))
+        }
+
         /**
          * Create a virtual value of a class type
          */
