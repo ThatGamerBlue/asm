@@ -121,7 +121,12 @@ abstract class AbstractValue(val insns: List<AbstractInsnNode>, val type: Type, 
     /**
      * Whether the data value is null or not.
      */
-    val isNull: Boolean get() = value == null
+    open val isNull: Boolean get() = value == null
+
+    /**
+     * Whether the value is an array type or not.
+     */
+    open val isArray: Boolean get() = type.sort == Type.ARRAY
 
     /**
      * Gets the size of the value on the stack.
