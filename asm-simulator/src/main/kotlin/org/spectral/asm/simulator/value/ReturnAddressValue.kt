@@ -36,4 +36,13 @@ class ReturnAddressValue(insns: List<AbstractInsnNode>) : AbstractValue(insns, T
     override fun equals(other: Any?): Boolean {
         return other == this
     }
+
+    companion object {
+        /**
+         * Creates a new return address value
+         */
+        fun newRet(insn: AbstractInsnNode): ReturnAddressValue {
+            return ReturnAddressValue(insn)
+        }
+    }
 }
