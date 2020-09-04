@@ -6,6 +6,7 @@ import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.TryCatchBlockNode
 import org.objectweb.asm.tree.analysis.Frame
 import org.objectweb.asm.tree.analysis.Interpreter
+import org.spectral.asm.simulator.controlflow.BlockHandler
 import org.spectral.asm.simulator.value.AbstractValue
 import org.spectral.asm.simulator.value.PrimitiveValue
 import org.spectral.asm.simulator.value.UninitializedValue
@@ -16,6 +17,16 @@ import org.spectral.asm.simulator.value.VirtualValue
  * resulting values pushed to the stack.
  */
 class ExecInterpreter : Interpreter<AbstractValue>(ASM8) {
+
+    /**
+     * The simulator instance.
+     */
+    internal lateinit var simulator: MethodSimulator
+
+    /**
+     * The control flow block handler instance.
+     */
+    internal lateinit var blockHandler: BlockHandler
 
     /**
      * Invoked when a new type value is pushed to the stack.
