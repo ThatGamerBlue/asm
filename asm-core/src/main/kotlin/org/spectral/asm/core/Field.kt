@@ -39,7 +39,20 @@ class Field(
 
     override val type = Type.getType(desc)
 
+    /**
+     * The initialized value of this field.
+     */
     val value: Any? = node.value
+
+    /**
+     * The methods that read values from this field.
+     */
+    val readRefs = hashSetOf<Method>()
+
+    /**
+     * The methods which write values to this field.
+     */
+    val writeRefs = hashSetOf<Method>()
 
     override fun isStatic(): Boolean = Modifier.isStatic(access)
 

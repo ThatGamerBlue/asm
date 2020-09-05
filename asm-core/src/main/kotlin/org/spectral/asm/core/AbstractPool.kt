@@ -50,6 +50,18 @@ abstract class AbstractPool<T : Node> : Pool<T> {
         return elements.values.firstOrNull(predicate)
     }
 
+    fun filter(predicate: (T) -> Boolean): List<T> {
+        return elements.filterValues(predicate).values.toList()
+    }
+
+    fun removeIf(predicate: (T) -> Boolean) {
+        this.elements.forEach { (name: String, cls: T) ->
+            if(predicate(cls)) {
+                this.elements.remove(name)
+            }
+        }
+    }
+
     /**
      * Gets a element from the pool with a given name.
      *
