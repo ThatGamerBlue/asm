@@ -69,6 +69,16 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
     val fields = node.fields.map { Field(pool, this, it, true) }
 
     /**
+     * The methods which reference this class.
+     */
+    val methodTypeRefs = hashSetOf<Method>()
+
+    /**
+     * The fields which reference this class.
+     */
+    val fieldTypeRefs = hashSetOf<Field>()
+
+    /**
      * Creates a virtual or fake class
      *
      * @param pool ClassPool

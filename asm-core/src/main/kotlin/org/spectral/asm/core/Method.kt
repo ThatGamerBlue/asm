@@ -87,6 +87,31 @@ class Method(
      */
     val variables = mutableListOf<LocalVariable>()
 
+    /**
+     * The methods that reference or invoke this method.
+     */
+    val refsIn = hashSetOf<Method>()
+
+    /**
+     * The methods that this method invokes or references.
+     */
+    val refsOut = hashSetOf<Method>()
+
+    /**
+     * The fields that this method reads values from
+     */
+    val fieldReads = hashSetOf<Field>()
+
+    /**
+     * The fields that this method writes values to
+     */
+    val fieldWrites = hashSetOf<Field>()
+
+    /**
+     * The classes this method has type references to.
+     */
+    val classRefs = hashSetOf<Class>()
+
     override fun isStatic(): Boolean = Modifier.isStatic(access)
 
     override fun isPrivate(): Boolean = Modifier.isPrivate(access)
