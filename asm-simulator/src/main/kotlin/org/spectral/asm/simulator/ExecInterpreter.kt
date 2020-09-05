@@ -28,6 +28,22 @@ class ExecInterpreter : Interpreter<AbstractValue>(ASM8) {
     internal lateinit var blockHandler: BlockHandler
 
     /**
+     * If the value pushed is a supported static invocation, simulate / inline its
+     * instructions and return its value result.
+     *
+     * @param insn AbstractInsnNode
+     * @param type Type
+     * @return AbstractValue?
+     */
+    private fun newValueOrVirtualized(insn: AbstractInsnNode, type: Type): AbstractValue? {
+        if(SimulatedVirtualValue.supported(type)) {
+            return SimulatedVirtualValue.initialize(listOf(insn), type)
+        }
+
+        return newValue(insn, type)
+    }
+
+    /**
      * Invoked when a new type value is pushed to the stack.
      *
      * @param insn AbstractInsnNode
@@ -112,9 +128,9 @@ class ExecInterpreter : Interpreter<AbstractValue>(ASM8) {
                     is Long -> PrimitiveValue.ofLong(insn, value.toLong())
                     is Float -> PrimitiveValue.ofFloat(insn, value.toFloat())
                     is Double -> PrimitiveValue.ofDouble(insn, value.toDouble())
-                    is String -> throw UnsupportedOperationException("String support not implemented into interpreter yet.")
+                    is String -> SimulatedVirtualValue.ofString(insn, value)
                     is Type -> {
-                        val type = value as Type
+                        val type = value
                         if(type.sort == Type.OBJECT || type.sort == Type.ARRAY) {
                             return VirtualValue.ofClass(insn, type)
                         }
