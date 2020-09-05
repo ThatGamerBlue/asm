@@ -5,10 +5,7 @@ import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.InvokeDynamicInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.TypeInsnNode
-import org.spectral.asm.core.Class
-import org.spectral.asm.core.ClassPool
-import org.spectral.asm.core.LocalVariable
-import org.spectral.asm.core.Method
+import org.spectral.asm.core.*
 import org.spectral.asm.core.ext.slotSize
 import org.spectral.asm.core.ext.targetHandle
 
@@ -24,6 +21,11 @@ class FeatureProcessor(private val pool: ClassPool) {
      * Processes the class pool and runs each feature extractor.
      */
     fun process(cls: Class) {
+        /*
+         * Reset the class state
+         */
+        reset(cls)
+
         extractSiblingHierarchy(cls)
 
         cls.methods.forEach { method ->
@@ -36,6 +38,18 @@ class FeatureProcessor(private val pool: ClassPool) {
         cls.methods.forEach { method ->
             processMethodInsns(method)
         }
+    }
+
+    private fun reset(cls: Class) {
+        cls.elementClass = null
+        cls.parent = null
+        cls.children.clear()
+        cls.interfaces.clear()
+        cls.implementers.clear()
+        cls.methods = cls.node.methods.map { Method(pool, cls, it, true) }
+        cls.fields = cls.node.fields.map { Field(pool, cls, it, true) }
+        cls.methodTypeRefs.clear()
+        cls.fieldTypeRefs.clear()
     }
 
     /**

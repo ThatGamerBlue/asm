@@ -1,5 +1,6 @@
 package org.spectral.asm.core
 
+import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.ACC_INTERFACE
 import org.objectweb.asm.Opcodes.ASM8
@@ -21,17 +22,25 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
     /**
      * The name of the class element.
      */
-    override val name = node.name
+    override var name
+        get() = node.name
+        set(value) {
+            node.name = value
+        }
 
     /**
      * The modifier flags of the class.
      */
-    override val access = node.access
+    override var access
+        get() = node.access
+        set(value) {
+            node.access = value
+        }
 
     /**
      * Whether the class is an array class or not.
      */
-    val isArray: Boolean = (type.sort == 9)
+    val isArray: Boolean get() = (type.sort == 9)
 
     /**
      * The element class type of the object is an array class.
@@ -61,12 +70,14 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
     /**
      * The methods in this class object.
      */
-    val methods = node.methods.map { Method(pool, this, it, true) }
+    var methods = node.methods.map { Method(pool, this, it, true) }
+        internal set
 
     /**
      * The fields in this class object.
      */
-    val fields = node.fields.map { Field(pool, this, it, true) }
+    var fields = node.fields.map { Field(pool, this, it, true) }
+        internal set
 
     /**
      * The methods which reference this class.
@@ -435,6 +446,15 @@ class Class(override val pool: ClassPool, override val node: ClassNode, override
 
     override fun toString(): String {
         return name
+    }
+
+    /**
+     * Forces a [visitor] to visit the ASM node of this object.
+     *
+     * @param visitor ClassVisitor
+     */
+    fun accept(visitor: ClassVisitor) {
+        node.accept(visitor)
     }
 
     companion object {
