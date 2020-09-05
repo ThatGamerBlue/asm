@@ -126,6 +126,38 @@ class PrimitiveValue(insns: List<AbstractInsnNode>, type: Type, value: Any?) : A
             return PrimitiveValue(insn, Type.DOUBLE_TYPE, value)
         }
 
+        fun ofInt(insns: List<AbstractInsnNode>, value: Int): AbstractValue {
+            return PrimitiveValue(insns, Type.INT_TYPE, value)
+        }
+
+        fun ofChar(insns: List<AbstractInsnNode>, value: Char): AbstractValue {
+            return PrimitiveValue(insns, Type.CHAR_TYPE, value)
+        }
+
+        fun ofByte(insns: List<AbstractInsnNode>, value: Byte): AbstractValue {
+            return PrimitiveValue(insns, Type.BYTE_TYPE, value)
+        }
+
+        fun ofShort(insns: List<AbstractInsnNode>, value: Short): AbstractValue {
+            return PrimitiveValue(insns, Type.SHORT_TYPE, value)
+        }
+
+        fun ofBool(insns: List<AbstractInsnNode>, value: Boolean): AbstractValue {
+            return PrimitiveValue(insns, Type.BOOLEAN_TYPE, value)
+        }
+
+        fun ofLong(insns: List<AbstractInsnNode>, value: Long): AbstractValue {
+            return PrimitiveValue(insns, Type.LONG_TYPE, value)
+        }
+
+        fun ofFloat(insns: List<AbstractInsnNode>, value: Float): AbstractValue {
+            return PrimitiveValue(insns, Type.FLOAT_TYPE, value)
+        }
+
+        fun ofDouble(insns: List<AbstractInsnNode>, value: Double): AbstractValue {
+            return PrimitiveValue(insns, Type.DOUBLE_TYPE, value)
+        }
+
         /**
          * Gets a common primitive data type for calculations of two data
          * types.

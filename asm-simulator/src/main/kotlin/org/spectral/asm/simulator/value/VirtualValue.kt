@@ -10,7 +10,7 @@ import org.spectral.asm.simulator.util.combine
  *
  * @constructor
  */
-class VirtualValue(insns: List<AbstractInsnNode>, type: Type, value: Any?) : AbstractValue(insns, type, value) {
+open class VirtualValue(insns: List<AbstractInsnNode>, type: Type, value: Any?) : AbstractValue(insns, type, value) {
 
     /**
      * Creates a virtual value with a single instruction.

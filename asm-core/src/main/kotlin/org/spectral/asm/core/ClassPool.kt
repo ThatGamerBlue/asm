@@ -5,6 +5,8 @@ import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.spectral.asm.core.extractor.FeatureProcessor
 import java.io.File
+import java.nio.file.*
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.jar.JarFile
 
 /**
@@ -75,29 +77,60 @@ class ClassPool : AbstractPool<Class>() {
     }
 
     /**
-     * Inserts classes from a class path file. (JAR File)
+     * Adds class from a file directory.
      *
-     * @param file File
+     * @param dir File
      */
-    fun insertFrom(file: File) {
-       if(file.extension != "jar") {
-           throw IllegalArgumentException("The specified file is not a JAR file.")
-       }
+    fun addDirectory(dir: File) {
+       if(!dir.exists()) return
+        Files.walkFileTree(Paths.get(dir.absolutePath), object : SimpleFileVisitor<Path>() {
+            override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
+                if(file.toString().endsWith(".class")) {
+                    addClass(file!!.toFile())
+                } else if(file.toString().endsWith(".jar") || file.toString().endsWith(".jmod")) {
+                    addArchive(file!!.toFile())
+                }
 
-        val nodes = hashSetOf<ClassNode>()
+                return FileVisitResult.CONTINUE
+            }
+        })
+    }
 
-        JarFile(file).use { jar ->
+    /**
+     * Adds classes from a given archive JAR file.
+     *
+     * @param archive File
+     */
+    fun addArchive(archive: File) {
+        JarFile(archive).use { jar ->
             jar.entries().asSequence()
                     .filter { it.name.endsWith(".class") }
                     .forEach {
-                        val node = ClassNode()
-                        val reader = ClassReader(jar.getInputStream(it))
-                        reader.accept(node, 0)
-
-                        nodes.add(node)
+                        val bytes = jar.getInputStream(it).readAllBytes()
+                        addClass(bytes)
                     }
         }
+    }
 
-        nodes.forEach { this.add(Class(this, it, Type.getObjectType(it.name),true)) }
+    /**
+     * Adds a class from a given [File]
+     *
+     * @param classFile File
+     */
+    fun addClass(classFile: File) {
+        addClass(Files.readAllBytes(classFile.toPath()))
+    }
+
+    /**
+     * Reads and adds a class's bytecode as a [Class] object to the
+     * current pool
+     *
+     * @param bytes ByteArray
+     */
+    fun addClass(bytes: ByteArray) {
+        val node = ClassNode()
+        val reader = ClassReader(bytes)
+        reader.accept(node, 0)
+        this.add(Class(this, node, Type.getObjectType(node.name), true))
     }
 }
