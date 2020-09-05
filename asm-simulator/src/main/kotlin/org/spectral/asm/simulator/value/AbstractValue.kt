@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.JumpInsnNode
 import org.objectweb.asm.tree.analysis.Value
 import org.spectral.asm.core.ext.slotSize
+import org.spectral.asm.simulator.ExecFrame
 
 /**
  * Represents an abstract implementation of a value of a local variable or stack element
@@ -50,14 +51,10 @@ abstract class AbstractValue(val insns: List<AbstractInsnNode>, val type: Type, 
     private set
 
     /**
-     * The instructions which pushed this value to the stack.
+     * The frame at the moment this value was pushed onto
+     * the stack.
      */
-    val pushed = insns
-
-    /**
-     * The instructions which have popped this value off the stack.
-     */
-    val pops = mutableListOf<AbstractInsnNode>()
+    lateinit var frame: ExecFrame
 
     /**
      * Whether the value type is primitive or not
@@ -147,9 +144,8 @@ abstract class AbstractValue(val insns: List<AbstractInsnNode>, val type: Type, 
         if (type != other.type) return false
         if (value != other.value) return false
         if (nullCheck != other.nullCheck) return false
+        if (frame != other.frame) return false
         if (copySource != other.copySource) return false
-        if (pushed != other.pushed) return false
-        if (pops != other.pops) return false
         if (isPrimitive != other.isPrimitive) return false
         if (isReference != other.isReference) return false
         if (isValueResolved != other.isValueResolved) return false
@@ -163,8 +159,7 @@ abstract class AbstractValue(val insns: List<AbstractInsnNode>, val type: Type, 
         result = 31 * result + (value?.hashCode() ?: 0)
         result = 31 * result + (nullCheck?.hashCode() ?: 0)
         result = 31 * result + (copySource?.hashCode() ?: 0)
-        result = 31 * result + pushed.hashCode()
-        result = 31 * result + pops.hashCode()
+        result = 31 * result + frame.hashCode()
         result = 31 * result + isPrimitive.hashCode()
         result = 31 * result + isReference.hashCode()
         result = 31 * result + isValueResolved.hashCode()
@@ -176,6 +171,34 @@ abstract class AbstractValue(val insns: List<AbstractInsnNode>, val type: Type, 
             this == UninitializedValue.UNINITIALIZED_VALUE -> "[UNINITIALIZED]"
             isNull -> "[$type:NULL]"
             else -> "[$type:$value]"
+        }
+    }
+
+    companion object {
+        /**
+         * Create a default type value on the stack
+         *
+         * @param insn AbstractInsnNode
+         * @param type Type
+         * @return AbstractValue
+         */
+        fun ofDefault(insn: AbstractInsnNode, type: Type?): AbstractValue? {
+            if(type == null) return UninitializedValue.UNINITIALIZED_VALUE
+            return when(type.sort) {
+                Type.VOID -> null
+                Type.BOOLEAN, Type.CHAR, Type.BYTE,
+                    Type.SHORT, Type.INT -> PrimitiveValue.ofInt(insn, 0)
+                Type.FLOAT -> PrimitiveValue.ofFloat(insn, 0F)
+                Type.LONG -> PrimitiveValue.ofLong(insn, 0L)
+                Type.DOUBLE -> PrimitiveValue.ofDouble(insn, 0.0)
+                Type.ARRAY, Type.OBJECT -> {
+                    if(type == NullConstantValue.NULL_VALUE_TYPE) {
+                        NullConstantValue.newNull(insn)
+                    }
+                    VirtualValue(insn, type, null)
+                }
+                else -> throw IllegalStateException("Unsupported type: $type")
+            }
         }
     }
 }
