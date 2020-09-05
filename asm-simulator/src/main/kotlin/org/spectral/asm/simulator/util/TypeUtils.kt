@@ -20,3 +20,12 @@ val Type.isPrimitive: Boolean get() = this.sort < ARRAY
  * Gets the index in the sort order for this type.
  */
 val Type.promotionIndex: Int get() = SORT_ORDER.indexOf(this.sort)
+
+fun isPrimitiveDesc(desc: String): Boolean {
+    if(desc.length != 1) return false
+    return when(desc[0]) {
+        'Z', 'C', 'B', 'S',
+            'I', 'F', 'J', 'D' -> true
+        else -> false
+    }
+}
