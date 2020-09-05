@@ -9,7 +9,10 @@ import org.objectweb.asm.tree.analysis.AnalyzerException
 import org.objectweb.asm.tree.analysis.Frame
 import org.objectweb.asm.tree.analysis.Interpreter
 import org.spectral.asm.simulator.controlflow.BlockHandler
+import org.spectral.asm.simulator.util.combine
+import org.spectral.asm.simulator.util.isPrimitive
 import org.spectral.asm.simulator.value.*
+
 
 /**
  * Responsible for interpreting bytecode of a method and calculating the
@@ -153,8 +156,62 @@ class ExecInterpreter : Interpreter<AbstractValue>(ASM8) {
         }
     }
 
-    override fun copyOperation(insn: AbstractInsnNode?, value: AbstractValue?): AbstractValue {
-        TODO("Not yet implemented")
+    override fun copyOperation(insn: AbstractInsnNode, value: AbstractValue): AbstractValue? {
+        var insnType: Type? = null
+        var load = false
+
+        when (insn.opcode) {
+            ILOAD -> {
+                load = true
+                insnType = Type.INT_TYPE
+            }
+            ISTORE -> insnType = Type.INT_TYPE
+            LLOAD -> {
+                load = true
+                insnType = Type.LONG_TYPE
+            }
+            LSTORE -> insnType = Type.LONG_TYPE
+            FLOAD -> {
+                load = true
+                insnType = Type.FLOAT_TYPE
+            }
+            FSTORE -> insnType = Type.FLOAT_TYPE
+            DLOAD -> {
+                load = true
+                insnType = Type.DOUBLE_TYPE
+            }
+            DSTORE -> insnType = Type.DOUBLE_TYPE
+            ALOAD -> {
+                load = true
+                if (value !== UninitializedValue.UNINITIALIZED_VALUE && !value.isReference) throw AnalyzerException(insn, "Expected a reference type.")
+                insnType = value.type
+            }
+            ASTORE -> {
+                if (!value.isReference && value !is ReturnAddressValue) throw AnalyzerException(insn, "Expected a reference or return-address type.")
+                insnType = value.type
+            }
+            else -> {}
+        }
+
+        /*
+         * Perform a simple verification. We dont want to mix primitive
+         * data type with non-primitive data types.
+         */
+        val argType = value.type
+        if(insnType != null) {
+            if(insnType.sort == Type.OBJECT && argType.isPrimitive) {
+                throw AnalyzerException(insn, "Cannot mix primitive value with type-variable instruction")
+            }
+            else if(argType.sort == Type.OBJECT && insnType.isPrimitive) {
+                throw AnalyzerException(insn, "Cannot mix type value with primitive-variable instruction")
+            }
+        }
+
+        if(load && insnType != value.type) {
+            return newValue(combine(value.insns, insn), insnType)
+        }
+
+        return value.copy(insn)
     }
 
     override fun unaryOperation(insn: AbstractInsnNode?, value: AbstractValue?): AbstractValue {
