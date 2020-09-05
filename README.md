@@ -1,7 +1,6 @@
 # Spectral ASM 
 ![build](https://github.com/spectral-powered/asm/workflows/build/badge.svg)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/spectral-powered/asm?include_prereleases)
-![Sonatype Nexus (Releases)](https://img.shields.io/nexus/r/org.spectral.asm/asm-core?label=maven&nexusVersion=3&server=https%3A%2F%2Frepo.spectralclient.org)
 ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/spectral-powered/asm)
 ![GitHub](https://img.shields.io/github/license/spectral-powered/asm)
 
@@ -25,10 +24,10 @@ Add the following to your dependencies closure.
 ```groovy
 dependencies {
     // For the asm-core module
-    implementation "org.spectral.asm:asm-core:0.0.1"
+    implementation "org.spectral.asm:asm-core:0.0.2"
 
     // For the asm-simulator module
-    implementation "org.spectral.asm:asm-simulator:0.0.1"
+    implementation "org.spectral.asm:asm-simulator:0.0.2"
 }
 ```
 
