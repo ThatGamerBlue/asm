@@ -24,10 +24,10 @@ Add the following to your dependencies closure.
 ```groovy
 dependencies {
     // For the asm-core module
-    implementation "org.spectral.asm:asm-core:0.0.2"
+    implementation "org.spectral.asm:asm-core:0.0.3"
 
     // For the asm-simulator module
-    implementation "org.spectral.asm:asm-simulator:0.0.2"
+    implementation "org.spectral.asm:asm-simulator:0.0.3"
 }
 ```
 
