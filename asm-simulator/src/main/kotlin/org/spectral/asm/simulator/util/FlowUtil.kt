@@ -50,8 +50,7 @@ object FlowUtil {
     fun isNullChecked(handler: BlockHandler, value: AbstractValue, usage: AbstractInsnNode): Boolean {
         if(!value.isNull) return true
         val nullCheck = value.nullCheck ?: return false
-        var safeInsn: AbstractInsnNode? = null
-        safeInsn = if(nullCheck.opcode == IFNULL) {
+        val safeInsn = if(nullCheck.opcode == IFNULL) {
             nullCheck.next
         } else {
             nullCheck.label

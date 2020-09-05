@@ -173,4 +173,32 @@ abstract class AbstractValue(val insns: List<AbstractInsnNode>, val type: Type, 
             else -> "[$type:$value]"
         }
     }
+
+    companion object {
+        /**
+         * Create a default type value on the stack
+         *
+         * @param insn AbstractInsnNode
+         * @param type Type
+         * @return AbstractValue
+         */
+        fun ofDefault(insn: AbstractInsnNode, type: Type?): AbstractValue? {
+            if(type == null) return UninitializedValue.UNINITIALIZED_VALUE
+            return when(type.sort) {
+                Type.VOID -> null
+                Type.BOOLEAN, Type.CHAR, Type.BYTE,
+                    Type.SHORT, Type.INT -> PrimitiveValue.ofInt(insn, 0)
+                Type.FLOAT -> PrimitiveValue.ofFloat(insn, 0F)
+                Type.LONG -> PrimitiveValue.ofLong(insn, 0L)
+                Type.DOUBLE -> PrimitiveValue.ofDouble(insn, 0.0)
+                Type.ARRAY, Type.OBJECT -> {
+                    if(type == NullConstantValue.NULL_VALUE_TYPE) {
+                        NullConstantValue.newNull(insn)
+                    }
+                    VirtualValue(insn, type, null)
+                }
+                else -> throw IllegalStateException("Unsupported type: $type")
+            }
+        }
+    }
 }
