@@ -100,12 +100,12 @@ class Method(
     /**
      * The fields that this method reads values from
      */
-    val fieldReads = hashSetOf<Field>()
+    val fieldReadRefs = hashSetOf<Field>()
 
     /**
      * The fields that this method writes values to
      */
-    val fieldWrites = hashSetOf<Field>()
+    val fieldWriteRefs = hashSetOf<Field>()
 
     /**
      * The classes this method has type references to.
