@@ -55,5 +55,4 @@ allprojects {
             includeEngines 'spek2'
         }
     }
-
 }
