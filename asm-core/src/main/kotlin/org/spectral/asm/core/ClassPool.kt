@@ -1,13 +1,17 @@
 package org.spectral.asm.core
 
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.spectral.asm.core.extractor.FeatureProcessor
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
 
 /**
  * Represents a collection of [Class] objects from
@@ -132,5 +136,23 @@ class ClassPool : AbstractPool<Class>() {
         val reader = ClassReader(bytes)
         reader.accept(node, 0)
         this.add(Class(this, node, Type.getObjectType(node.name), true))
+    }
+
+    /**
+     * Saves the current class group to an archive JAR file.
+     *
+     * @param file File
+     */
+    fun saveArchive(file: File) {
+        val jos = JarOutputStream(FileOutputStream(file))
+        this.forEach {
+            jos.putNextEntry(JarEntry(it.name + ".class"))
+            val writer = ClassWriter(0)
+            it.node.accept(writer)
+            jos.write(writer.toByteArray())
+            jos.closeEntry()
+        }
+
+        jos.close()
     }
 }
