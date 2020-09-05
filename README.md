@@ -1,4 +1,10 @@
-# Spectral ASM
+# Spectral ASM 
+![build](https://github.com/spectral-powered/asm/workflows/build/badge.svg)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/spectral-powered/asm?include_prereleases)
+![Sonatype Nexus (Releases)](https://img.shields.io/nexus/r/org.spectral.asm/asm-core?label=maven&nexusVersion=3&server=https%3A%2F%2Frepo.spectralclient.org)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/spectral-powered/asm)
+![GitHub](https://img.shields.io/github/license/spectral-powered/asm)
+
 Spectral ASM is a library designed to extend the current ASM library and provide
 additional features to be used by various parts of Spectral projects. 
 
@@ -66,3 +72,4 @@ executionFrames.forEach { frame ->
     println(frame)
 }
 ```
+
