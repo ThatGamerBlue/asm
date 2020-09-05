@@ -8,18 +8,29 @@ wrapper {
     gradleVersion = "6.6"
 }
 
+ext {
+    mavenUser = hasProperty('mavenUser') ? mavenUser : System.getenv('MAVEN_USER')
+    mavenPass = hasProperty('mavenPass') ? mavenPass : System.getenv('MAVEN_PASS')
+    mavenUrl = hasProperty('mavenUrl') ? mavenUrl : System.getenv('MAVEN_URL')
+}
+
 allprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'maven-publish'
 
     group 'org.spectral.asm'
-    version '1.0.0'
+    version '0.0.1'
 
     repositories {
         mavenLocal()
         mavenCentral()
         jcenter()
         maven { url 'https://jitpack.io' }
+    }
+
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
     }
 
     dependencies {

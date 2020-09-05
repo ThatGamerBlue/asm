@@ -1,0 +1,23 @@
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.spectral.asm'
+            artifactId = 'asm-core'
+            version = version
+
+            from components.java
+            artifact sourceJar
+        }
+    }
+
+    repositories {
+        maven {
+            credentials {
+                username = mavenUser
+                password = mavenPass
+            }
+
+            url = mavenUrl
+        }
+    }
+}
