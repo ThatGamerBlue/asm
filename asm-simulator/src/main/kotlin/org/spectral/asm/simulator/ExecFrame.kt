@@ -46,7 +46,7 @@ class ExecFrame : Frame<AbstractValue> {
     override fun pop(): AbstractValue {
         val result = super.pop()
         result.frame = this
-        result.insns.first().pops.add(result)
+        result.insns.forEach { it.pops.add(result) }
 
         return result
     }
@@ -60,7 +60,7 @@ class ExecFrame : Frame<AbstractValue> {
         super.push(value)
 
         value.frame = this
-        value.insns.first().pushed.add(value)
+        value.insns.forEach { it.pushed.add(value) }
     }
 
     /**

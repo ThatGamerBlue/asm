@@ -24,10 +24,6 @@ class UninitializedValue(type: Type?, value: Any?) : AbstractValue(type ?: Type.
         return other == this
     }
 
-    override fun equals(other: Any?): Boolean {
-        return other == this
-    }
-
     companion object {
         /**
          * Base uninitialized value

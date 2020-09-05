@@ -214,8 +214,112 @@ class ExecInterpreter : Interpreter<AbstractValue>(ASM8) {
         return value.copy(insn)
     }
 
-    override fun unaryOperation(insn: AbstractInsnNode?, value: AbstractValue?): AbstractValue {
-        TODO("Not yet implemented")
+    override fun unaryOperation(insn: AbstractInsnNode, value: AbstractValue): AbstractValue? {
+        return when (insn.opcode) {
+            INEG -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.INT_TYPE)
+                else PrimitiveValue.ofInt(combine(value.insns, insn), -toInt(value))
+            }
+            IINC -> PrimitiveValue.ofInt(combine(value.insns, insn), (insn as IincInsnNode).incr)
+            L2I, F2I, D2I, I2B, I2C, I2S -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.INT_TYPE)
+                else PrimitiveValue.ofInt(combine(value.insns, insn), toInt(value))
+            }
+            FNEG -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.FLOAT_TYPE)
+                else PrimitiveValue.ofFloat(combine(value.insns, insn), -toFloat(value))
+            }
+            I2F, L2F, D2F -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.FLOAT_TYPE)
+                else PrimitiveValue.ofFloat(combine(value.insns, insn), toFloat(value))
+            }
+            LNEG -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.LONG_TYPE)
+                else PrimitiveValue.ofLong(combine(value.insns, insn), -toLong(value))
+            }
+            I2L, F2L, D2L -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.LONG_TYPE)
+                else PrimitiveValue.ofLong(combine(value.insns, insn), toLong(value))
+            }
+            DNEG -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.DOUBLE_TYPE)
+                else PrimitiveValue.ofDouble(combine(value.insns, insn), -toDouble(value))
+            }
+            I2D, L2D, F2D -> {
+                if (isValueUnknown(value)) newValue(combine(value.insns, insn), Type.DOUBLE_TYPE)
+                else PrimitiveValue.ofDouble(combine(value.insns, insn), toDouble(value))
+            }
+            IFEQ, IFNE, IFLT, IFGE, IFGT, IFLE -> {
+                null
+            }
+            TABLESWITCH, LOOKUPSWITCH -> {
+                null
+            }
+            IRETURN -> {
+                null
+            }
+            LRETURN -> {
+                null
+            }
+            FRETURN -> {
+                null
+            }
+            DRETURN -> {
+                null
+            }
+            ARETURN -> {
+                null
+            }
+            PUTSTATIC -> {
+                null
+            }
+            GETFIELD -> {
+
+                // Value == field owner instance
+                // - Check instance context is of the owner class
+                val fin = insn as FieldInsnNode
+                val type = Type.getType(fin.desc)
+                newValue(combine(value.insns, insn), type)
+            }
+            NEWARRAY -> {
+                when ((insn as IntInsnNode).operand) {
+                    T_BOOLEAN -> return newValue(combine(value.insns, insn), Type.getType("[Z"))
+                    T_CHAR -> return newValue(combine(value.insns, insn), Type.getType("[C"))
+                    T_BYTE -> return newValue(combine(value.insns, insn), Type.getType("[B"))
+                    T_SHORT -> return newValue(combine(value.insns, insn), Type.getType("[S"))
+                    T_INT -> return newValue(combine(value.insns, insn), Type.getType("[I"))
+                    T_FLOAT -> return newValue(combine(value.insns, insn), Type.getType("[F"))
+                    T_DOUBLE -> return newValue(combine(value.insns, insn), Type.getType("[D"))
+                    T_LONG -> return newValue(combine(value.insns, insn), Type.getType("[J"))
+                    else -> {
+                    }
+                }
+                throw AnalyzerException(insn, "Invalid array type specified in instruction")
+            }
+            ANEWARRAY -> newValue(combine(value.insns, insn), Type.getType("[" + Type.getObjectType((insn as TypeInsnNode).desc)))
+            ARRAYLENGTH -> {
+                newValue(combine(value.insns, insn), Type.INT_TYPE)
+            }
+            ATHROW -> {
+                if (!value.isReference) throw AnalyzerException(insn, "Expected reference type on stack for ATHROW.")
+                null
+            }
+            CHECKCAST -> {
+                if (!value.isReference) throw AnalyzerException(insn, "Expected reference type on stack for CHECKCAST.")
+                newValue(combine(value.insns, insn), Type.getObjectType((insn as TypeInsnNode).desc))
+            }
+            INSTANCEOF -> newValue(combine(value.insns, insn), Type.INT_TYPE)
+            MONITORENTER, MONITOREXIT -> {
+                if (!value.isReference) throw AnalyzerException(insn, "Expected a reference type for monitor.")
+                null
+            }
+            IFNULL, IFNONNULL -> {
+                if (!value.isReference) throw AnalyzerException(insn, "Expected a reference type ifnull/nonnull.")
+                value.setNullCheckedBy(insn as JumpInsnNode?)
+                null
+            }
+            else -> throw IllegalStateException()
+        }
     }
 
     override fun binaryOperation(insn: AbstractInsnNode?, value1: AbstractValue?, value2: AbstractValue?): AbstractValue {
@@ -244,5 +348,25 @@ class ExecInterpreter : Interpreter<AbstractValue>(ASM8) {
         }
 
         return UninitializedValue.UNINITIALIZED_VALUE
+    }
+
+    private fun isValueUnknown(value: AbstractValue): Boolean {
+        return value.value == null || value.value is Unresolved
+    }
+
+    private fun toFloat(value: AbstractValue): Float {
+        return (value.value as Number).toFloat()
+    }
+
+    private fun toDouble(value: AbstractValue): Double {
+        return (value.value as Number).toDouble()
+    }
+
+    private fun toInt(value: AbstractValue): Int {
+        return (value.value as Number).toInt()
+    }
+
+    private fun toLong(value: AbstractValue): Long {
+        return (value.value as Number).toLong()
     }
 }
