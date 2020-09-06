@@ -16,6 +16,7 @@ class ClassPoolTest {
 
     val element = mockk<Class> {
         every { type } answers { Type.getObjectType("someClass") }
+        every { name } answers { "toDelete" }
     }
 
     @Test
