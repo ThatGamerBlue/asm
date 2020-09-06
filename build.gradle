@@ -44,18 +44,16 @@ allprojects {
         implementation "org.ow2.asm:asm-tree:$asm"
         implementation "com.google.guava:guava:$guava"
 
-        testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spek"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:$junit"
+        testImplementation "org.junit.jupiter:junit-jupiter-engine:$junit"
         testImplementation "io.mockk:mockk:$mockk"
         testImplementation "org.jetbrains.kotlin:kotlin-test"
         testImplementation "com.natpryce:hamkrest:$hamkrest"
-        testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5:$spek"
         testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect"
     }
 
     test {
-        useJUnitPlatform {
-            includeEngines 'spek2'
-        }
+        useJUnitPlatform()
     }
 
     detekt {
