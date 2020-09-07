@@ -28,6 +28,11 @@ class ClassContainer private constructor(
         this[element.type] = element
     }
 
+    override fun addClassAndVisit(element: Class) {
+        addClass(element)
+        element.accept(element.node)
+    }
+
     override fun addClass(bytes: ByteArray) {
         val reader = ClassReader(bytes)
         val node = ClassNode()
@@ -53,7 +58,7 @@ class ClassContainer private constructor(
                     }
         }
 
-        this.values.forEach { it.node.accept(it) }
+        this.values.forEach { it.accept(it.node) }
     }
 
     override fun addDirectory(dir: File) {
@@ -91,5 +96,19 @@ class ClassContainer private constructor(
 
     override fun get(name: String): Class? {
         return this.namedElements[name]
+    }
+
+    override fun getOrCreate(name: String): Class {
+        return getOrCreate(Type.getObjectType(name.replace(".", "/")))
+    }
+
+    override fun getOrCreate(type: Type): Class {
+        var ret = this[type]
+        if(ret == null) {
+            ret = Class(this, type)
+            addClassAndVisit(ret)
+        }
+
+        return ret
     }
 }
