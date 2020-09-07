@@ -1,15 +1,12 @@
 package org.spectral.asm.core
 
-import com.natpryce.hamkrest.assertion.assertThat
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.objectweb.asm.Type
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ClassPoolTest {
 
     val pool = ClassPool.create()
@@ -44,5 +41,12 @@ class ClassPoolTest {
         pool.remove(toDelete?.type)
 
         assertFalse { pool.containsKey(toDelete?.type) }
+    }
+
+    @Test
+    fun `test array element class`() {
+        val tmp = pool.getOrCreate(Type.getObjectType("[J;"))
+        assertTrue { tmp.isArray }
+        assertTrue { tmp.type.elementType == Type.LONG_TYPE }
     }
 }

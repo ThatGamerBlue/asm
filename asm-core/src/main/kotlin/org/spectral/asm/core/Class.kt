@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes.ASM8
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
+import java.util.concurrent.ConcurrentHashMap
 
 class Class private constructor(
         val pool: ClassPool,
@@ -24,6 +25,8 @@ class Class private constructor(
 
     val name get() = node.name
 
+    var elementClass: Class? = null
+
     val access get() = node.access
 
     var parent: Class? = null
@@ -35,15 +38,27 @@ class Class private constructor(
 
     val implementers = hashSetOf<Class>()
 
+    val isArray: Boolean get() = type.sort == Type.ARRAY
+
+    private val methodMap = ConcurrentHashMap<Type, Method>()
+
+    val methods: List<Method> get() = methodMap.values.toList()
+
     fun accept(classVisitor: ClassVisitor) {
         node.accept(classVisitor)
 
-        parent = pool[node.superName]
+        parent = pool.getOrCreate(node.superName)
         parent?.children?.add(this)
 
         interfaces.clear()
-        interfaces.addAll(node.interfaces.mapNotNull { pool[it] })
+        interfaces.addAll(node.interfaces.mapNotNull { pool.getOrCreate(it) })
         interfaces.forEach { it.implementers.add(this) }
+
+        if(isArray) {
+            elementClass = pool.getOrCreate(type.elementType)
+        }
+
+        node.methods.forEach { methodMap[Type.getMethodType(it.desc)] = Method(pool, this, it) }
     }
 
     companion object {

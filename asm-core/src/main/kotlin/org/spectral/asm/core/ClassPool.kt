@@ -8,6 +8,8 @@ interface ClassPool : ConcurrentMap<Type, Class> {
 
     fun addClass(element: Class)
 
+    fun addClassAndVisit(element: Class)
+
     fun addClass(bytes: ByteArray)
 
     fun addClass(file: File)
@@ -21,6 +23,10 @@ interface ClassPool : ConcurrentMap<Type, Class> {
     fun saveDirectory(dir: File)
 
     operator fun get(name: String): Class?
+
+    fun getOrCreate(name: String): Class
+
+    fun getOrCreate(type: Type): Class
 
     companion object {
         fun create(): ClassPool {
