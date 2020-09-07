@@ -15,13 +15,9 @@ class Class private constructor(
 
     constructor(pool: ClassPool, node: ClassNode) : this(pool, node, Type.getObjectType(node.name), true)
 
-    constructor(pool: ClassPool, name: String) : this(pool, classnode(name), Type.getObjectType(name), false)
+    constructor(pool: ClassPool, name: String) : this(pool, classnode(name.replace(".", "/")), Type.getObjectType(name.replace(".", "/")), false)
 
-    constructor(pool: ClassPool, type: Type) : this(pool, classnode(type.className), type, false)
-
-    init {
-        node.accept(this)
-    }
+    constructor(pool: ClassPool, type: Type) : this(pool, classnode(type.className.replace(".", "/")), type, false)
 
     val name get() = node.name
 
@@ -44,6 +40,10 @@ class Class private constructor(
 
     val methods: List<Method> get() = methodMap.values.toList()
 
+    private val fieldMap = ConcurrentHashMap<Type, Field>()
+
+    val fields: List<Field> get() = fieldMap.values.toList()
+
     fun accept(classVisitor: ClassVisitor) {
         node.accept(classVisitor)
 
@@ -55,10 +55,18 @@ class Class private constructor(
         interfaces.forEach { it.implementers.add(this) }
 
         if(isArray) {
-            elementClass = pool.getOrCreate(type.elementType)
+            elementClass = pool.getOrCreate(name.replace("[]", ""))
         }
 
         node.methods.forEach { methodMap[Type.getMethodType(it.desc)] = Method(pool, this, it) }
+        node.fields.forEach { fieldMap[Type.getType(it.desc)] = Field(pool, this, it) }
+
+        methods.forEach { it.init() }
+        fields.forEach { it.init() }
+    }
+
+    override fun toString(): String {
+        return name
     }
 
     companion object {

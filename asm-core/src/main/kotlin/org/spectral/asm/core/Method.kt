@@ -4,7 +4,6 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM8
 import org.objectweb.asm.Type
-import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
 import java.lang.reflect.Modifier
 
@@ -21,8 +20,9 @@ class Method private constructor(
 
     constructor(pool: ClassPool, owner: Class, type: Type) : this(pool, owner, methodnode(type.className, type.descriptor), false)
 
-    private fun init() {
-        node.accept(this)
+    internal fun init() {
+        returnTypeClass = pool.getOrCreate(type.returnType)
+        type.argumentTypes.forEach { argTypeClasses.add(pool.getOrCreate(it)) }
     }
 
     override val name get() = node.name
@@ -32,6 +32,10 @@ class Method private constructor(
     override val access get() = node.access
 
     override val type: Type = Type.getMethodType(desc)
+
+    lateinit var returnTypeClass: Class
+
+    val argTypeClasses = mutableListOf<Class>()
 
     override val isStatic: Boolean get() = Modifier.isStatic(access)
 
@@ -49,6 +53,10 @@ class Method private constructor(
     fun accept(visitor: MethodVisitor) {
         node.accept(visitor)
         init()
+    }
+
+    override fun toString(): String {
+        return "$owner.$name$desc"
     }
 
     companion object {

@@ -30,7 +30,7 @@ class ClassContainer private constructor(
 
     override fun addClassAndVisit(element: Class) {
         addClass(element)
-        element.node.accept(element)
+        element.accept(element.node)
     }
 
     override fun addClass(bytes: ByteArray) {
@@ -58,7 +58,7 @@ class ClassContainer private constructor(
                     }
         }
 
-        this.values.forEach { it.node.accept(it) }
+        this.values.forEach { it.accept(it.node) }
     }
 
     override fun addDirectory(dir: File) {
@@ -99,7 +99,7 @@ class ClassContainer private constructor(
     }
 
     override fun getOrCreate(name: String): Class {
-        return getOrCreate(Type.getObjectType(name))
+        return getOrCreate(Type.getObjectType(name.replace(".", "/")))
     }
 
     override fun getOrCreate(type: Type): Class {
