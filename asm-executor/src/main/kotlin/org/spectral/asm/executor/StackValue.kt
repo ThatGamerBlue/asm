@@ -5,7 +5,7 @@ import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.analysis.Value
 
 class StackValue(
-        val insn: AbstractInsnNode?,
+        var insn: AbstractInsnNode?,
         val type: Type?,
         val value: Any?
 ) : Value {
@@ -26,7 +26,8 @@ class StackValue(
     }
 
     companion object {
-        fun pushUninitialized(insn: AbstractInsnNode?) = StackValue(insn, null, null)
+        val UNINITIALIZED_VALUE = StackValue(null, null, null)
+        fun pushUninitialized(insn: AbstractInsnNode) = StackValue(insn, null, null)
         fun pushInt(insn: AbstractInsnNode, value: Int?) = StackValue(insn, Type.INT_TYPE, value)
         fun pushFloat(insn: AbstractInsnNode, value: Float?) = StackValue(insn, Type.FLOAT_TYPE, value)
         fun pushLong(insn: AbstractInsnNode, value: Long?) = StackValue(insn, Type.LONG_TYPE, value)

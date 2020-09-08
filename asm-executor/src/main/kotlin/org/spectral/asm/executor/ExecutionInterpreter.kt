@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.analysis.AnalyzerException
 import org.objectweb.asm.tree.analysis.Frame
 import org.objectweb.asm.tree.analysis.Interpreter
 
+
 class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
 
     internal lateinit var analyzer: MethodExecutor
@@ -19,7 +20,7 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
     private fun newValue(insn: AbstractInsnNode?, type: Type?): StackValue? {
         return when {
             type == null -> {
-                StackValue.pushUninitialized(insn)
+                StackValue.UNINITIALIZED_VALUE
             }
             type == Type.VOID_TYPE -> {
                 null
@@ -54,14 +55,14 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
     override fun newOperation(insn: AbstractInsnNode): StackValue? {
         return when(insn.opcode) {
             ACONST_NULL -> newValue(insn, Type.getObjectType("null"))
-            in ICONST_M1..ICONST_5 -> StackValue.pushInt(insn,  insn.opcode - (ICONST_M1 + 1))
+            in ICONST_M1..ICONST_5 -> StackValue.pushInt(insn, insn.opcode - (ICONST_M1 + 1))
             in LCONST_0..LCONST_1 -> StackValue.pushLong(insn, (insn.opcode - LCONST_0).toLong())
             in FCONST_0..FCONST_2 -> StackValue.pushFloat(insn, (insn.opcode - FCONST_0).toFloat())
             in DCONST_0..DCONST_1 -> StackValue.pushDouble(insn, (insn.opcode - DCONST_0).toDouble())
             BIPUSH, SIPUSH -> StackValue.pushInt(insn, cast<IntInsnNode>(insn).operand)
             LDC -> {
                 val value = cast<LdcInsnNode>(insn).cst
-                when(value) {
+                when (value) {
                     is Int -> StackValue.pushInt(insn, value)
                     is Float -> StackValue.pushFloat(insn, value)
                     is Long -> StackValue.pushLong(insn, value)
@@ -71,13 +72,11 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
                         val type = value as Type
                         val sort = type.sort
 
-                        if(sort == Type.OBJECT || sort == Type.ARRAY) {
+                        if (sort == Type.OBJECT || sort == Type.ARRAY) {
                             StackValue.pushClass(insn, type)
-                        }
-                        else if(sort == Type.METHOD) {
+                        } else if (sort == Type.METHOD) {
                             newValue(insn, Type.getObjectType("java/lang/invoke/MethodType"))
-                        }
-                        else {
+                        } else {
                             throw AnalyzerException(insn, "Illegal LDC value $value")
                         }
                     }
@@ -93,8 +92,52 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
         }
     }
 
-    override fun copyOperation(insn: AbstractInsnNode, value: StackValue): StackValue {
-        return StackValue(insn, value.type, value.value)
+    override fun copyOperation(insn: AbstractInsnNode, value: StackValue): StackValue? {
+        var type: Type? = null
+        var load = false
+
+        when(insn.opcode) {
+            ILOAD -> {
+                load = true
+                type = Type.INT_TYPE
+            }
+            ISTORE -> type = Type.INT_TYPE
+            LLOAD -> {
+                load = true
+                type = Type.LONG_TYPE
+            }
+            LSTORE -> type = Type.LONG_TYPE
+            FLOAD -> {
+                load = true
+                type = Type.FLOAT_TYPE
+            }
+            FSTORE -> type = Type.FLOAT_TYPE
+            DLOAD -> {
+                load = true
+                type = Type.DOUBLE_TYPE
+            }
+            DSTORE -> type = Type.DOUBLE_TYPE
+            ALOAD -> {
+                load = true
+                if(value != StackValue.UNINITIALIZED_VALUE && !value.isReference) {
+                    throw AnalyzerException(insn, "Expected a reference type.")
+                }
+                type = value.type
+            }
+            ASTORE -> {
+                if(!value.isReference && value.type != Type.VOID_TYPE) {
+                    throw AnalyzerException(insn, "Expected a reference or return-address type.")
+                }
+                type = value.type
+            }
+        }
+
+        if(load && type != value.type) {
+            return newValue(insn, type)
+        }
+
+        value.insn = insn
+        return value
     }
 
     override fun naryOperation(insn: AbstractInsnNode?, values: MutableList<out StackValue>?): StackValue {
@@ -112,7 +155,7 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
     override fun unaryOperation(insn: AbstractInsnNode, value: StackValue): StackValue? {
         return when(insn.opcode) {
             INEG -> {
-                if(value.value == null) {
+                if (value.value == null) {
                     newValue(insn, Type.INT_TYPE)
                 } else {
                     StackValue.pushInt(insn, cast<Int>(value.value) * -1)
@@ -127,7 +170,7 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
             I2B,
             I2C,
             I2S -> {
-                if(value.value == null) newValue(insn, Type.INT_TYPE)
+                if (value.value == null) newValue(insn, Type.INT_TYPE)
                 else StackValue.pushInt(insn, cast<Int>(value.value))
             }
 
