@@ -30,6 +30,8 @@ class Field private constructor(
 
     override val type = Type.getType(desc)
 
+    val id get() = owner.id to name
+
     lateinit var typeClass: Class
 
     override val isStatic: Boolean get() = Modifier.isStatic(access)

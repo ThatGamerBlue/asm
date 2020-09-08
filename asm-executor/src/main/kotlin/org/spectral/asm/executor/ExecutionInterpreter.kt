@@ -6,6 +6,7 @@ import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.analysis.AnalyzerException
+import org.objectweb.asm.tree.analysis.Frame
 import org.objectweb.asm.tree.analysis.Interpreter
 
 class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
@@ -15,7 +16,7 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
     /**
      * Creates a new value on the stack or LVT.
      */
-    private fun newValue(insn: AbstractInsnNode, type: Type?): StackValue? {
+    private fun newValue(insn: AbstractInsnNode?, type: Type?): StackValue? {
         return when {
             type == null -> {
                 StackValue.pushUninitialized(insn)
@@ -32,6 +33,22 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
 
     override fun newValue(type: Type?): StackValue {
         throw UnsupportedOperationException("Interpreter called default implementation of 'newValue()'.")
+    }
+
+    override fun newReturnTypeValue(type: Type): StackValue? {
+        return newValue(null, type)
+    }
+
+    override fun newEmptyValue(local: Int): StackValue? {
+        return newValue(null, null)
+    }
+
+    override fun newParameterValue(isInstanceMethod: Boolean, local: Int, type: Type): StackValue? {
+        return newValue(null, type)
+    }
+
+    override fun newExceptionValue(tryCatchBlockNode: TryCatchBlockNode, handlerFrame: Frame<StackValue>, exceptionType: Type): StackValue? {
+        return newValue(tryCatchBlockNode.handler, exceptionType)
     }
 
     override fun newOperation(insn: AbstractInsnNode): StackValue? {
@@ -76,8 +93,8 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
         }
     }
 
-    override fun copyOperation(insn: AbstractInsnNode?, value: StackValue?): StackValue {
-        TODO("Not yet implemented")
+    override fun copyOperation(insn: AbstractInsnNode, value: StackValue): StackValue {
+        return StackValue(insn, value.type, value.value)
     }
 
     override fun naryOperation(insn: AbstractInsnNode?, values: MutableList<out StackValue>?): StackValue {
@@ -92,8 +109,30 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
         TODO("Not yet implemented")
     }
 
-    override fun unaryOperation(insn: AbstractInsnNode?, value: StackValue?): StackValue {
-        TODO("Not yet implemented")
+    override fun unaryOperation(insn: AbstractInsnNode, value: StackValue): StackValue? {
+        return when(insn.opcode) {
+            INEG -> {
+                if(value.value == null) {
+                    newValue(insn, Type.INT_TYPE)
+                } else {
+                    StackValue.pushInt(insn, cast<Int>(value.value) * -1)
+                }
+            }
+
+            IINC -> StackValue.pushInt(insn, cast<IincInsnNode>(insn).incr)
+
+            L2I,
+            F2I,
+            D2I,
+            I2B,
+            I2C,
+            I2S -> {
+                if(value.value == null) newValue(insn, Type.INT_TYPE)
+                else StackValue.pushInt(insn, cast<Int>(value.value))
+            }
+
+            else -> throw AnalyzerException(insn, "Unknown unary operation instruction.")
+        }
     }
 
     override fun returnOperation(insn: AbstractInsnNode?, value: StackValue?, expected: StackValue?) {
@@ -104,7 +143,7 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
         TODO("Not yet implemented")
     }
 
-    private inline fun <reified T: AbstractInsnNode> cast(insn: AbstractInsnNode): T {
-        return insn as T
+    private inline fun <reified T> cast(value: Any): T {
+        return value as T
     }
 }

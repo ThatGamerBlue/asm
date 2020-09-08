@@ -1,16 +1,27 @@
 package org.spectral.asm.executor
 
 import org.objectweb.asm.tree.analysis.Analyzer
-import org.objectweb.asm.tree.analysis.SourceInterpreter
-import org.objectweb.asm.tree.analysis.SourceValue
+import org.objectweb.asm.tree.analysis.Frame
 import org.spectral.asm.core.Method
 
-class MethodExecutor
-private constructor(
+class MethodExecutor private constructor(
         val method: Method,
-        interpreter: SourceInterpreter
-) : Analyzer<SourceValue>(interpreter){
+        private val interpreter: ExecutionInterpreter
+) : Analyzer<StackValue>(interpreter){
 
-    constructor(method: Method) : this(method, SourceInterpreter())
+    init {
+        interpreter.analyzer = this
+    }
 
+    constructor(method: Method) : this(method, ExecutionInterpreter())
+
+    fun run(): Array<Frame<StackValue>> = this.analyze(method.owner.name, method.node)
+
+    override fun newFrame(numLocals: Int, numStack: Int): Frame<StackValue> {
+        return ExecutionFrame(numLocals, numStack)
+    }
+
+    override fun newFrame(frame: Frame<out StackValue>): Frame<StackValue> {
+        return ExecutionFrame(frame as ExecutionFrame)
+    }
 }

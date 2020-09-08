@@ -5,10 +5,14 @@ import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.analysis.Value
 
 class StackValue(
-        val insn: AbstractInsnNode,
+        val insn: AbstractInsnNode?,
         val type: Type?,
         val value: Any?
 ) : Value {
+
+    val popped = mutableListOf<ExecutionFrame>()
+
+    lateinit var frame: ExecutionFrame
 
     override fun getSize(): Int {
         return when(type) {
@@ -22,7 +26,7 @@ class StackValue(
     }
 
     companion object {
-        fun pushUninitialized(insn: AbstractInsnNode) = StackValue(insn, null, null)
+        fun pushUninitialized(insn: AbstractInsnNode?) = StackValue(insn, null, null)
         fun pushInt(insn: AbstractInsnNode, value: Int?) = StackValue(insn, Type.INT_TYPE, value)
         fun pushFloat(insn: AbstractInsnNode, value: Float?) = StackValue(insn, Type.FLOAT_TYPE, value)
         fun pushLong(insn: AbstractInsnNode, value: Long?) = StackValue(insn, Type.LONG_TYPE, value)
