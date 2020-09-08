@@ -24,10 +24,7 @@ Add the following to your dependencies closure.
 ```groovy
 dependencies {
     // For the asm-core module
-    implementation "org.spectral.asm:asm-core:0.1.0"
-
-    // For the asm-simulator module
-    implementation "org.spectral.asm:asm-simulator:0.1.0"
+    implementation "org.spectral.asm:asm-core:0.1.1"
 }
 ```
 
@@ -39,7 +36,7 @@ Loading a JAR file into a ClassPool object.
 /*
  * Create the empty class pool object.
  */
-val pool = ClassPool()
+val pool = ClassPool.create()
 
 /*
  * Add all the class from a JAR file to the
@@ -47,28 +44,7 @@ val pool = ClassPool()
  */
 pool.addArchive(File("/path/to/my/jar/file.jar"))
 
-/*
- * Initialize the pool. This runs the pool feature extractor.
- */
-pool.init()
-
 // Outputs the number of classes loaded
 println("Class count: ${pool.size}")
-```
-
-#### Simulator Example
-Execute a method simulation.
-```kotlin
-// Some method from a class pool object.
-val method = pool["client"]!!.getMethod("init", "()V")!!
-
-// Create the method simulator instance and run it.
-val simulator = MethodSimulator(method)
-val executionFrames = simulator.run()
-
-// Print out the stact as a string at each execution frame state.
-executionFrames.forEach { frame ->
-    println(frame)
-}
 ```
 
