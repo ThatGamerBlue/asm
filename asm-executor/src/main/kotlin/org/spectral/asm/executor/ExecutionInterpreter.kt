@@ -158,21 +158,38 @@ class ExecutionInterpreter : Interpreter<StackValue>(ASM8) {
                 if (value.value == null) {
                     newValue(insn, Type.INT_TYPE)
                 } else {
-                    StackValue.pushInt(insn, cast<Int>(value.value) * -1)
+                    StackValue.pushInt(insn, -cast<Int>(value.value))
                 }
             }
 
             IINC -> StackValue.pushInt(insn, cast<IincInsnNode>(insn).incr)
 
-            L2I,
-            F2I,
-            D2I,
-            I2B,
-            I2C,
-            I2S -> {
+            L2I, F2I, D2I, I2B, I2C, I2S -> {
                 if (value.value == null) newValue(insn, Type.INT_TYPE)
                 else StackValue.pushInt(insn, cast<Int>(value.value))
             }
+
+            FNEG -> {
+                if(value.value == null) newValue(insn, Type.FLOAT_TYPE)
+                else StackValue.pushFloat(insn, -cast<Float>(value.value))
+            }
+
+            I2F, L2F, D2F -> {
+                if(value.value == null) newValue(insn, Type.FLOAT_TYPE)
+                else StackValue.pushFloat(insn, cast<Float>(value.value))
+            }
+
+            LNEG -> {
+                if(value.value == null) newValue(insn, Type.LONG_TYPE)
+                else StackValue.pushLong(insn, -cast<Long>(value.value))
+            }
+
+            I2L, F2L, D2L -> {
+                if(value.value == null) newValue(insn, Type.LONG_TYPE)
+                else StackValue.pushLong(insn, cast<Long>(value.value))
+            }
+
+
 
             else -> throw AnalyzerException(insn, "Unknown unary operation instruction.")
         }
