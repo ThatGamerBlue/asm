@@ -5,7 +5,7 @@ import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.analysis.Frame
 import java.util.*
 
-class ExecutionFrame(val insn: AbstractInsnNode, frame: Frame<AbstractValue>) {
+class ExecutionFrame(val insn: AbstractInsnNode, val executionFrame: Frame<AbstractValue>) {
 
     val pushes = mutableListOf<ExecutionValue>()
     val pops = mutableListOf<ExecutionValue>()
@@ -16,8 +16,8 @@ class ExecutionFrame(val insn: AbstractInsnNode, frame: Frame<AbstractValue>) {
         /*
          * Update the stack
          */
-        for(i in 0 until frame.stackSize) {
-            stack.push(frame.getStack(i))
+        for(i in 0 until executionFrame.stackSize) {
+            stack.push(executionFrame.getStack(i))
         }
     }
 }

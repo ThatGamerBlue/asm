@@ -24,7 +24,10 @@ Add the following to your dependencies closure.
 ```groovy
 dependencies {
     // For the asm-core module
-    implementation "org.spectral.asm:asm-core:0.1.1"
+    implementation "org.spectral.asm:asm-core:0.2.0"
+    
+    // For th asm-executor module
+    implementation "org.spectral.asm:asm-executor:0.2.0"
 }
 ```
 
@@ -48,3 +51,26 @@ pool.addArchive(File("/path/to/my/jar/file.jar"))
 println("Class count: ${pool.size}")
 ```
 
+#### Executor Example
+```kotlin
+// Get some method instance from the pool
+val myClass = pool["myClass"]!!
+val myMethod = myClass.method.first { it.name == "myMethod" }
+
+// Create a method executor instance.
+val executor = MethodExecutor(myMethod)
+
+// Run the execution.
+executor.run()
+
+val executionFrames = executor.frames
+
+// We can see the stack, instruction, pushed, and popped values
+// as a sort of state snapshot at each method instruction.
+executionFrames.forEach { frame ->
+    println("Stack: \${frame.stack}")
+    println("Opcode: \${frame.insn.opcode}")
+    println("Popped Values: \${frame.pops}")
+    println("Pushed Values: \${frame.pushes}")
+}
+```
