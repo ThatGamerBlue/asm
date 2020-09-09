@@ -1,27 +1,91 @@
 package org.spectral.asm.executor
 
-import org.objectweb.asm.tree.analysis.Analyzer
+import me.coley.analysis.SimAnalyzer
+import me.coley.analysis.SimInterpreter
+import me.coley.analysis.value.AbstractValue
 import org.objectweb.asm.tree.analysis.Frame
 import org.spectral.asm.core.Method
+import java.util.*
 
-class MethodExecutor private constructor(
-        val method: Method,
-        private val interpreter: ExecutionInterpreter
-) : Analyzer<StackValue>(interpreter){
+class MethodExecutor(private val method: Method) {
+
+    private val simulator = SimAnalyzer(SimInterpreter())
+    private val executionFrames: Array<Frame<AbstractValue>>
+    private var currentIndex = 0
+
+    private val stack = Stack<ExecutionValue>()
+
+    val frames = mutableListOf<ExecutionFrame>()
 
     init {
-        interpreter.analyzer = this
+        simulator.setSkipDeadCodeBlocks(false)
+        simulator.setThrowUnresolvedAnalyzerErrors(false)
+        executionFrames = simulator.analyze(method.owner.name, method.node)
     }
 
-    constructor(method: Method) : this(method, ExecutionInterpreter())
+    fun step() {
+        val insn = method.instructions[currentIndex]
+        val executionFrame = executionFrames[currentIndex]
 
-    fun run(): Array<Frame<StackValue>> = this.analyze(method.owner.name, method.node)
+        val frame = ExecutionFrame(insn, executionFrame)
+        frame.pops.addAll(this.getPops(frame))
+        frame.pushes.addAll(this.getPushes(frame))
 
-    override fun newFrame(numLocals: Int, numStack: Int): Frame<StackValue> {
-        return ExecutionFrame(numLocals, numStack)
+        frames.add(frame)
+
+        currentIndex++
     }
 
-    override fun newFrame(frame: Frame<out StackValue>): Frame<StackValue> {
-        return ExecutionFrame(frame as ExecutionFrame)
+    fun run() {
+        while(currentIndex < method.instructions.size()) {
+            step()
+        }
     }
+
+    private fun getPushes(frame: ExecutionFrame): List<ExecutionValue> {
+        if(currentIndex >= executionFrames.size - 1) return emptyList()
+
+        val nextFrame = executionFrames[currentIndex + 1]
+        val nextStack = mutableListOf<AbstractValue>()
+        val curStack = mutableListOf<AbstractValue>()
+
+        for(i in 0 until nextFrame.stackSize) {
+            nextStack.add(nextFrame.getStack(i))
+        }
+
+        for(i in 0 until frame.stack.size) {
+            curStack.add(frame.stack[i])
+        }
+
+        nextStack.removeAll(curStack)
+        return nextStack.map { ExecutionValue(it) }.apply {
+            this.forEach { it.pusher = frame }
+            this.forEach { stack.push(it) }
+        }
+    }
+
+    private fun getPops(frame: ExecutionFrame): List<ExecutionValue> {
+        if(currentIndex == 0) return emptyList()
+
+        val lastFrame = frames[currentIndex - 1]
+        val lastStack = mutableListOf<AbstractValue>()
+        val curStack = mutableListOf<AbstractValue>()
+
+        for(i in 0 until lastFrame.stack.size) {
+            lastStack.add(lastFrame.stack[i])
+        }
+
+        for(i in 0 until frame.stack.size) {
+            curStack.add(frame.stack[i])
+        }
+
+        lastStack.removeAll(curStack)
+        return lastStack.map {
+            if(stack.isNotEmpty()) stack.pop()
+            else ExecutionValue(it)
+        }.apply {
+            this.forEach { it.poppers.add(frame) }
+        }
+    }
+
 }

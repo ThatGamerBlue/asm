@@ -1,36 +1,23 @@
 package org.spectral.asm.executor
 
+import me.coley.analysis.value.AbstractValue
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.analysis.Frame
+import java.util.*
 
-class ExecutionFrame : Frame<StackValue> {
+class ExecutionFrame(val insn: AbstractInsnNode, frame: Frame<AbstractValue>) {
 
-    var insn: AbstractInsnNode? = null
+    val pushes = mutableListOf<ExecutionValue>()
+    val pops = mutableListOf<ExecutionValue>()
 
-    constructor(numLocals: Int, numStack: Int) : super(numLocals, numStack)
+    val stack = Stack<AbstractValue>()
 
-    constructor(frame: ExecutionFrame) : super(frame)
-
-    val pops = mutableListOf<StackValue>()
-
-    val pushes = mutableListOf<StackValue>()
-
-    override fun push(value: StackValue) {
-        insn = value.insn
-
-        super.push(value)
-
-        value.frame = this
-        pushes.add(value)
-    }
-
-    override fun pop(): StackValue {
-        val value = super.pop()
-        insn = value.insn
-
-        value.popped.add(this)
-        pops.add(value)
-
-        return value
+    init {
+        /*
+         * Update the stack
+         */
+        for(i in 0 until frame.stackSize) {
+            stack.push(frame.getStack(i))
+        }
     }
 }
