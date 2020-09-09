@@ -36,13 +36,15 @@ class Class private constructor(
 
     val isArray: Boolean get() = type.sort == Type.ARRAY
 
-    private val methodMap = ConcurrentHashMap<Type, Method>()
+    private val methodMap = ConcurrentHashMap<Triple<Type, String, Type>, Method>()
 
     val methods: List<Method> get() = methodMap.values.toList()
 
-    private val fieldMap = ConcurrentHashMap<Type, Field>()
+    private val fieldMap = ConcurrentHashMap<Pair<Type, String>, Field>()
 
     val fields: List<Field> get() = fieldMap.values.toList()
+
+    val id get() = type
 
     fun accept(classVisitor: ClassVisitor) {
         node.accept(classVisitor)
@@ -58,8 +60,8 @@ class Class private constructor(
             elementClass = pool.getOrCreate(name.replace("[]", ""))
         }
 
-        node.methods.forEach { methodMap[Type.getMethodType(it.desc)] = Method(pool, this, it) }
-        node.fields.forEach { fieldMap[Type.getType(it.desc)] = Field(pool, this, it) }
+        node.methods.forEach { Method(pool, this, it).apply { methodMap[this.id] = this } }
+        node.fields.forEach { Field(pool, this, it).apply { fieldMap[this.id] = this } }
 
         methods.forEach { it.init() }
         fields.forEach { it.init() }

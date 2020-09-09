@@ -1,0 +1,32 @@
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation project(":asm-core")
+    implementation "com.github.col-e:simanalyzer:$simanalyzer"
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.spectral.asm'
+            artifactId = 'asm-executor'
+            version = version
+
+            from components.java
+            artifact sourceJar
+        }
+    }
+
+    repositories {
+        maven {
+            credentials {
+                username = mavenUser
+                password = mavenPass
+            }
+
+            url = mavenUrl
+        }
+    }
+}

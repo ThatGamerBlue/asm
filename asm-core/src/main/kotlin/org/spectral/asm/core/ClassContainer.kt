@@ -94,8 +94,8 @@ class ClassContainer private constructor(
         TODO("Not yet implemented")
     }
 
-    override fun get(name: String): Class? {
-        return this.namedElements[name]
+    override operator fun get(name: String): Class? {
+        return this.values.firstOrNull { it.name == name }
     }
 
     override fun getOrCreate(name: String): Class {

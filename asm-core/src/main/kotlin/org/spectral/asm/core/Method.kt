@@ -33,6 +33,10 @@ class Method private constructor(
 
     override val type: Type = Type.getMethodType(desc)
 
+    val id get() = Triple(owner.id, name, type)
+
+    val instructions get() = node.instructions
+
     lateinit var returnTypeClass: Class
 
     val argTypeClasses = mutableListOf<Class>()
