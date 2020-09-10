@@ -34,7 +34,7 @@ class ClassPool {
 
     companion object {
 
-        fun loadArchive(file: File): ClassPool {
+        fun loadJar(file: File): ClassPool {
             val pool = ClassPool()
 
             JarFile(file).use { jar ->

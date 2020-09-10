@@ -6,7 +6,7 @@ interface Member : Node {
 
     val owner: Class
 
-    val desc: String
+    val desc: Descriptor
 
     val isStatic: Boolean get() = (access and ACC_STATIC) != 0
 
