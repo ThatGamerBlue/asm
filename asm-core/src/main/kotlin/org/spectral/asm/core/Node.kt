@@ -2,11 +2,13 @@ package org.spectral.asm.core
 
 import org.objectweb.asm.Type
 
-interface Node<T> {
+interface Node : Annotatable {
 
-    val node: Any
+    val name: String
+
+    val access: Int
 
     val type: Type
 
-    val real: Boolean
+    fun initialize()
 }

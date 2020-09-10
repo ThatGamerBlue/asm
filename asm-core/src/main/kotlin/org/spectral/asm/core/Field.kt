@@ -1,57 +1,31 @@
 package org.spectral.asm.core
 
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.FieldVisitor
-import org.objectweb.asm.Opcodes.ASM8
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.FieldNode
-import java.lang.reflect.Modifier
 
-class Field private constructor(
-        val pool: ClassPool,
-        val owner: Class,
-        override val node: FieldNode,
-        override val real: Boolean
-) : FieldVisitor(ASM8), ClassMember<Field> {
+class Field(override val owner: Class, private val node: FieldNode) : Member {
 
-    constructor(pool: ClassPool, owner: Class, node: FieldNode) : this(pool, owner, node, true)
+    override var name = node.name
 
-    constructor(pool: ClassPool, owner: Class, name: String, desc: String) : this(pool, owner, fieldnode(name, desc), false)
+    override var access = node.access
 
-    internal fun init() {
-        typeClass = pool.getOrCreate(type)
-    }
+    override var desc = node.desc
 
-    override val name get() = node.name
+    override val type get() = Type.getType(desc)
 
-    override val desc get() = node.desc
+    var value: Any? = node.value
 
-    override val access get() = node.access
+    override val annotations = mutableListOf<Annotation>()
 
-    override val type = Type.getType(desc)
+    override fun initialize() {
+        annotations.clear()
 
-    val id get() = owner.id to name
-
-    lateinit var typeClass: Class
-
-    override val isStatic: Boolean get() = Modifier.isStatic(access)
-
-    override val isPrivate: Boolean get() = Modifier.isPrivate(access)
-
-    val value: Any? get() = node.value
-
-    fun accept(visitor: ClassVisitor) {
-        node.accept(visitor)
-        init()
+        node.visibleAnnotations?.forEach {
+            annotations.add(Annotation(it))
+        }
     }
 
     override fun toString(): String {
         return "$owner.$name"
-    }
-
-    companion object {
-        private fun fieldnode(name: String, desc: String): FieldNode {
-            return FieldNode(0, name, desc, null, null)
-        }
     }
 }

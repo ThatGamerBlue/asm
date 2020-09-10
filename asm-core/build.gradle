@@ -1,3 +1,6 @@
+dependencies {
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
