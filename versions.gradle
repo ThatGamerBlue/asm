@@ -4,5 +4,5 @@ ext {
     junit = "5.6.2"
     mockk = "1.10.0"
     hamkrest = "1.7.0.3"
-    simanalyzer = "1.4.2"
+    kotlinpoet = "1.6.0"
 }
