@@ -2,6 +2,7 @@ package org.spectral.asm.core
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Type
 
@@ -29,6 +30,8 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
     var interfaces = mutableListOf<String>()
 
     override var annotations = mutableListOf<Annotation>()
+
+    var fields = mutableListOf<Field>()
 
     /*
      * VISITOR METHODS
@@ -62,6 +65,18 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
         }
 
         return null
+    }
+
+    override fun visitField(
+            access: Int,
+            name: String,
+            descriptor: String,
+            signature: String?,
+            value: Any?
+    ): FieldVisitor {
+        val field = Field(pool, this, access, name, descriptor, value)
+        fields.add(field)
+        return field
     }
 
     override fun visitEnd() {
