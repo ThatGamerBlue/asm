@@ -19,8 +19,8 @@ class Signature(type: Type) {
         return sb.toString()
     }
 
-    var returnType: Type = type.returnType
+    var returnType: Type = if(type.sort != Type.METHOD) type else type.returnType
 
-    var argumentTypes: MutableList<Type> = type.argumentTypes.toMutableList()
+    var argumentTypes: MutableList<Type> = if(type.sort != Type.METHOD) mutableListOf() else type.argumentTypes.toMutableList()
 
 }
