@@ -3,7 +3,16 @@ package org.spectral.asm.core
 import org.objectweb.asm.Type
 import java.lang.StringBuilder
 
-class Signature(type: Type) {
+/**
+ * Represents an field, or method descriptor but allows for modification
+ * of the returnType and argument types to build the descriptor.
+ *
+ * @property desc String
+ * @property returnType Type
+ * @property argumentTypes MutableList<Type>
+ * @constructor
+ */
+class Signature(var type: Type) {
 
     val desc: String get() {
         val sb = StringBuilder()
@@ -20,6 +29,13 @@ class Signature(type: Type) {
     }
 
     var returnType: Type = if(type.sort != Type.METHOD) type else type.returnType
+        set(value) {
+            if(type.sort != Type.METHOD) {
+                throw UnsupportedOperationException("Return type cannot be modified for a non-method signature.")
+            }
+
+            field = value
+        }
 
     var argumentTypes: MutableList<Type> = if(type.sort != Type.METHOD) mutableListOf() else type.argumentTypes.toMutableList()
 

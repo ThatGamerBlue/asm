@@ -14,7 +14,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
 
     override val type: Type get() = Type.getMethodType(signature.desc)
 
-    var exceptions = mutableListOf<ClassRef>()
+    var exceptions = mutableListOf<ClassName>()
 
     override var annotations = mutableListOf<Annotation>()
 

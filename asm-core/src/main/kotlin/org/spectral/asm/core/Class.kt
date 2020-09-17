@@ -25,9 +25,9 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
 
     override val type get() = Type.getObjectType(name)
 
-    var superName: String = ""
+    lateinit var parent: ClassName
 
-    var interfaces = mutableListOf<String>()
+    var interfaces = mutableListOf<ClassName>()
 
     override var annotations = mutableListOf<Annotation>()
 
@@ -48,8 +48,8 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
         this.version = version
         this.access = access
         this.name = name
-        this.superName = superName
-        this.interfaces = interfaces.toMutableList()
+        this.parent = ClassName(pool, superName)
+        this.interfaces = interfaces.map { ClassName(pool, it) }.toMutableList()
     }
 
     override fun visitSource(source: String, debug: String?) {
