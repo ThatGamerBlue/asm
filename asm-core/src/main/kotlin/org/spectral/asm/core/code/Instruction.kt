@@ -36,4 +36,8 @@ abstract class Instruction(val opcode: Int) {
      * @param visitor MethodVisitor
      */
     abstract fun accept(visitor: MethodVisitor)
+
+    abstract fun copy(clonedLabels: Map<Label, Label>): Instruction
+
+    abstract override fun toString(): String
 }
