@@ -1,3 +1,7 @@
+dependencies {
+    implementation "io.github.classgraph:classgraph:$classgraph"
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
