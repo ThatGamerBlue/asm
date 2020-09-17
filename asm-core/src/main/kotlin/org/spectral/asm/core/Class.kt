@@ -32,6 +32,14 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
 
     var fields = mutableListOf<Field>()
 
+    override fun init() {
+        parent.cls = pool[parent.name]
+        interfaces.forEach { it.cls = pool[it.name] }
+
+        methods.forEach { it.init() }
+        fields.forEach { it.init() }
+    }
+
     /*
      * VISITOR METHODS
      */
@@ -47,8 +55,8 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
         this.version = version
         this.access = access
         this.name = name
-        this.parent = ClassName(pool, superName)
-        this.interfaces = interfaces.map { ClassName(pool, it) }.toMutableList()
+        this.parent = ClassName(superName)
+        this.interfaces = interfaces.map { ClassName(it) }.toMutableList()
     }
 
     override fun visitSource(source: String, debug: String?) {

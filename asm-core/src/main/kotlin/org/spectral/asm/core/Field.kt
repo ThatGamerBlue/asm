@@ -51,6 +51,10 @@ class Field(val pool: ClassPool, val owner: Class) : FieldVisitor(ASM9), Node, A
 
     override val annotations = mutableListOf<Annotation>()
 
+    override fun init() {
+
+    }
+
     /*
      * VISITOR METHODS
      */

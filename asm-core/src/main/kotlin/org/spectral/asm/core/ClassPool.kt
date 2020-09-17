@@ -67,4 +67,13 @@ class ClassPool : MutableList<Class> {
     private fun rebuildClassMap() {
         classMap = classes.associateBy { it.name }.toMutableMap()
     }
+
+    /**
+     * Initializes the pool elements after all have been added.
+     */
+    fun init() {
+        this.forEach { cls ->
+            cls.init()
+        }
+    }
 }

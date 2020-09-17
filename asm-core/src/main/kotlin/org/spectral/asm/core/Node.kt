@@ -10,4 +10,5 @@ interface Node {
 
     val type: Type
 
+    fun init()
 }

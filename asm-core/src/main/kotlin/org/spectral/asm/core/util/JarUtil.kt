@@ -30,6 +30,12 @@ object JarUtil {
                     }
         }
 
+        /*
+         * Initialize the pool after all elements
+         * have been added.
+         */
+        pool.init()
+
         return pool
     }
 }

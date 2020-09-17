@@ -4,6 +4,7 @@ import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Type
+import org.spectral.asm.core.code.Code
 
 /**
  * Represents a Java Method.
@@ -50,14 +51,19 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         /*
          * Add the exceptions if any are provided. (Not null)
          */
-        exceptions?.map { ClassName(pool, it) }?.let { this.exceptionClasses.addAll(it) }
+        exceptions?.map { ClassName(it) }?.let { this.exceptionClasses.addAll(it) }
     }
 
     override var annotations = mutableListOf<Annotation>()
 
-    var maxStack = 0
+    /**
+     * The code or instructions of the method.
+     */
+    var code = Code(this)
 
-    var maxLocals = 0
+    override fun init() {
+        exceptionClasses.forEach { it.cls = pool[it.name] }
+    }
 
     /*
      * VISITOR METHODS
@@ -74,13 +80,9 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         return null
     }
 
-    override fun visitCode() {
-        // TODO Implement code.
-    }
-
     override fun visitMaxs(maxStack: Int, maxLocals: Int) {
-        this.maxStack = maxStack
-        this.maxLocals = maxLocals
+        this.code.maxStack = maxStack
+        this.code.maxLocals = maxLocals
     }
 
     override fun visitEnd() {
