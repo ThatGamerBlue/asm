@@ -10,7 +10,7 @@ class ClassPool : MutableList<Class> {
     /**
      * Backing storage of classes to track order.
      */
-    private val classes = mutableListOf<Class>()
+    private var classes = mutableListOf<Class>()
 
     /**
      * Backing storage of classes by their name -> instance
@@ -65,6 +65,6 @@ class ClassPool : MutableList<Class> {
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<Class> = classes.subList(fromIndex, toIndex)
 
     private fun rebuildClassMap() {
-        classMap = classes.associate { it.name to it }.toMutableMap()
+        classMap = classes.associateBy { it.name }.toMutableMap()
     }
 }
