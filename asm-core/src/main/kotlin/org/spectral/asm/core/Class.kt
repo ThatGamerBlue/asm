@@ -1,10 +1,7 @@
 package org.spectral.asm.core
 
-import org.objectweb.asm.AnnotationVisitor
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.ASM9
-import org.objectweb.asm.Type
 
 /**
  * Represents a Java class object.
@@ -30,6 +27,8 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
     var interfaces = mutableListOf<ClassName>()
 
     override var annotations = mutableListOf<Annotation>()
+
+    var methods = mutableListOf<Method>()
 
     var fields = mutableListOf<Field>()
 
@@ -65,6 +64,19 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
         }
 
         return null
+    }
+
+    override fun visitMethod(
+            access: Int,
+            name: String,
+            descriptor: String,
+            signature: String?,
+            exceptions: Array<out String>?
+    ): MethodVisitor {
+        val method = Method(pool, this, access, name, descriptor, exceptions)
+        methods.add(method)
+
+        return method
     }
 
     override fun visitField(
