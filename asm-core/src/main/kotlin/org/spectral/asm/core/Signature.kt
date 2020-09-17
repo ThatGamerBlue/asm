@@ -23,7 +23,12 @@ class Signature(var type: Type) {
             }
             sb.append(')')
         }
-        sb.append(returnType.toString())
+
+        if(type.sort != Type.METHOD) {
+            sb.append(type.toString())
+        } else {
+            sb.append(returnType.toString())
+        }
 
         return sb.toString()
     }
@@ -39,4 +44,7 @@ class Signature(var type: Type) {
 
     var argumentTypes: MutableList<Type> = if(type.sort != Type.METHOD) mutableListOf() else type.argumentTypes.toMutableList()
 
+    override fun toString(): String {
+        return desc
+    }
 }

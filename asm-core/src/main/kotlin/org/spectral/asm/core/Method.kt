@@ -5,6 +5,9 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Type
 import org.spectral.asm.core.code.Code
+import org.spectral.asm.core.code.Exception
+import org.spectral.asm.core.code.Label
+import org.objectweb.asm.Label as AsmLabel
 
 /**
  * Represents a Java Method.
@@ -80,6 +83,10 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         return null
     }
 
+    override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {
+        code.exceptions.add(Exception(findLabel(start), findLabel(end), handler?.let { findLabel(it) }, type))
+    }
+
     override fun visitMaxs(maxStack: Int, maxLocals: Int) {
         this.code.maxStack = maxStack
         this.code.maxLocals = maxLocals
@@ -89,6 +96,14 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         /*
          * Nothing to do.
          */
+    }
+
+    internal fun findLabel(label: AsmLabel): Label {
+        if(label.info !is Label) {
+            label.info = Label()
+        }
+
+        return label.info as Label
     }
 
     override fun toString(): String {

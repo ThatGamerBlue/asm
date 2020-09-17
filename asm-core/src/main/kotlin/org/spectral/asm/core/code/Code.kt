@@ -19,6 +19,8 @@ class Code(val method: Method) {
 
     var maxLocals = 0
 
+    var exceptions = mutableListOf<Exception>()
+
     val size: Int get() = instructions.size
 
     lateinit var first: Instruction private set
@@ -42,7 +44,11 @@ class Code(val method: Method) {
     }
 
     fun accept(visitor: MethodVisitor) {
-
+        var current: Instruction? = first
+        while(current != null) {
+            current.accept(visitor)
+            current = current.next
+        }
     }
 
     fun add(insn: Instruction) {
