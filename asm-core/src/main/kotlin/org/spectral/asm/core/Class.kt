@@ -18,13 +18,13 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
 
     override var access: Int = 0
 
-    lateinit var source: String
+    var source: String = ""
 
-    override lateinit var name: String
+    override var name: String = ""
 
     override val type get() = Type.getObjectType(name)
 
-    lateinit var superName: String
+    var superName: String = ""
 
     var interfaces = mutableListOf<String>()
 
