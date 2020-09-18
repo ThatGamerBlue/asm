@@ -2,6 +2,7 @@ package org.spectral.asm.core.code
 
 import org.objectweb.asm.MethodVisitor
 import org.spectral.asm.core.Method
+import org.objectweb.asm.Label as AsmLabel
 
 /**
  * Represents the code JVM instruction collection of a method.
@@ -13,7 +14,9 @@ import org.spectral.asm.core.Method
  */
 class Code(val method: Method) {
 
-    private val instructions = mutableListOf<Instruction>()
+    private val insnList = mutableListOf<Instruction>()
+
+    val instructions: List<Instruction> get() = insnList
 
     var maxStack = 0
 
@@ -21,62 +24,61 @@ class Code(val method: Method) {
 
     var exceptions = mutableListOf<Exception>()
 
-    val size: Int get() = instructions.size
-
-    lateinit var first: Instruction private set
-
-    lateinit var last: Instruction private set
+    val size: Int get() = insnList.size
 
     operator fun get(index: Int): Instruction {
         if(index < 0 || index > size) {
             throw IndexOutOfBoundsException()
         }
 
-        return instructions[index]
+        return insnList[index]
     }
 
     fun contains(insn: Instruction): Boolean {
-        return instructions.contains(insn)
+        return insnList.contains(insn)
     }
 
     fun indexOf(insn: Instruction): Int {
-        return instructions.indexOf(insn)
+        return insnList.indexOf(insn)
     }
 
     fun accept(visitor: MethodVisitor) {
-        var current: Instruction? = first
-        while(current != null) {
-            current.accept(visitor)
-            current = current.next
-        }
+        insnList.forEach { it.accept(visitor) }
     }
 
     fun add(insn: Instruction) {
-        if(!::last.isInitialized) {
-            first = insn
-            last = insn
-        } else {
-            last.next = insn
-            insn.prev = last
-        }
-
-        last = insn
-        insn.index = 0
-
-        instructions.add(insn)
+        insnList.add(insn)
     }
 
     fun insert(insn: Instruction) {
-        if(!::first.isInitialized) {
-            first = insn
-            last = insn
-        } else {
-            first.prev = insn
-            insn.next = first
-        }
-        first = insn
-        insn.index = 0
+        insnList.add(0, insn)
+    }
 
-        instructions.add(0, insn)
+    fun insertAfter(target: Instruction, insn: Instruction) {
+        insnList.add(indexOf(target) + 1, insn)
+    }
+
+    fun insertBefore(target: Instruction, insn: Instruction) {
+        insnList.add(indexOf(target), insn)
+    }
+
+    fun remove(insn: Instruction) {
+        insnList.remove(insn)
+    }
+
+    fun removeAll(insns: Collection<Instruction>) {
+        insnList.removeAll(insns)
+    }
+
+    fun clear() {
+        insnList.clear()
+    }
+
+    fun resetLabels() {
+        insnList.forEach { insn ->
+            if(insn is Label) {
+                insn.label = AsmLabel()
+            }
+        }
     }
 }

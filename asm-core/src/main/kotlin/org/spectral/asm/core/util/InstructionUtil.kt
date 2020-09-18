@@ -1,5 +1,6 @@
 package org.spectral.asm.core.util
 
+import com.esotericsoftware.reflectasm.ConstructorAccess
 import io.github.classgraph.ClassGraph
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.common.Opcode
@@ -41,5 +42,16 @@ object InstructionUtil {
 
             instructionMap[opcode] = klass as KClass<out Instruction>
         }
+    }
+
+    /**
+     * Gets an instruction instance for a given opcode.
+     *
+     * @param opcode Int
+     * @return Instruction
+     */
+    fun getInstruction(opcode: Int): Instruction {
+        val cls = instructionMap[opcode] ?: throw IndexOutOfBoundsException("No instruction found for opcode $opcode.")
+        return ConstructorAccess.get(cls.java).newInstance()
     }
 }

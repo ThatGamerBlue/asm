@@ -7,6 +7,7 @@ import org.objectweb.asm.Type
 import org.spectral.asm.core.code.Code
 import org.spectral.asm.core.code.Exception
 import org.spectral.asm.core.code.Label
+import org.spectral.asm.core.code.LineNumber
 import org.objectweb.asm.Label as AsmLabel
 
 /**
@@ -81,6 +82,22 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         }
 
         return null
+    }
+
+    /*
+     * INSTRUCTION VISITOR METHODS
+     */
+
+    override fun visitLabel(label: AsmLabel) {
+        code.add(findLabel(label))
+    }
+
+    override fun visitLineNumber(line: Int, start: AsmLabel) {
+        code.add(LineNumber(line, findLabel(start)))
+    }
+
+    override fun visitInsn(opcode: Int) {
+        //code.add(InstructionUtil.getInstruction(opcode))
     }
 
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {

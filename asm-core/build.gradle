@@ -1,5 +1,6 @@
 dependencies {
     implementation "io.github.classgraph:classgraph:$classgraph"
+    implementation "com.esotericsoftware:reflectasm:$reflectasm"
 }
 
 publishing {

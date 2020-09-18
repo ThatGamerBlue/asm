@@ -16,21 +16,6 @@ abstract class Instruction(val opcode: Int) {
     lateinit var code: Code internal set
 
     /**
-     * The index value of this instruction.
-     */
-    var index = -1
-
-    /**
-     * The next instruction in the code.
-     */
-    var next: Instruction? = null
-
-    /**
-     * The previous instruction in the code.
-     */
-    var prev: Instruction? = null
-
-    /**
      * Makes the given visitor visit this instruction.
      *
      * @param visitor MethodVisitor

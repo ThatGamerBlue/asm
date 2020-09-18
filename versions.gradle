@@ -2,4 +2,5 @@ ext {
     asm = "9.0-beta"
     guava = "29.0-jre"
     classgraph = "4.8.90"
+    reflectasm = "1.11.9"
 }
