@@ -107,6 +107,10 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         code.add(InstructionUtil.getInstruction(LDC, value))
     }
 
+    override fun visitVarInsn(opcode: Int, index: Int) {
+        code.add(InstructionUtil.getInstruction(opcode, index))
+    }
+
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {
         code.exceptions.add(Exception(findLabel(start), findLabel(end), handler?.let { findLabel(it) }, type))
     }
