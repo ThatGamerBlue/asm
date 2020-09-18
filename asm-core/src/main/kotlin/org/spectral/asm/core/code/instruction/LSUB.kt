@@ -7,8 +7,9 @@ import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=101)
 class LSUB : Instruction(101) {
-  override fun accept(visitor: MethodVisitor) {
 
+  override fun accept(visitor: MethodVisitor) {
+    visitor.visitInsn(opcode)
   }
 
   override fun toString(): String = "LSUB"
