@@ -4,6 +4,6 @@ interface VarInstruction {
 
     val index: Int
 
-    val type: VarInstructionType
+    val type: InstructionType
 
 }

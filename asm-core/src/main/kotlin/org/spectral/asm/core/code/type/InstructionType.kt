@@ -1,6 +1,6 @@
 package org.spectral.asm.core.code.type
 
-enum class VarInstructionType(val slots: Int) {
+enum class InstructionType(val slots: Int) {
 
     INT(1),
     FLOAT(1),
