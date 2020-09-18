@@ -2,8 +2,7 @@ package org.spectral.asm.core
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.ASM9
-import org.objectweb.asm.Opcodes.LDC
+import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import org.spectral.asm.core.code.*
 import org.spectral.asm.core.reference.ClassRef
@@ -115,6 +114,14 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
 
     override fun visitVarInsn(opcode: Int, index: Int) {
         code.add(InstructionUtil.getInstruction(code, opcode, index))
+    }
+
+    override fun visitIincInsn(index: Int, increment: Int) {
+        code.add(InstructionUtil.getInstruction(code, IINC, index, increment))
+    }
+
+    override fun visitJumpInsn(opcode: Int, label: AsmLabel) {
+        code.add(InstructionUtil.getInstruction(code, opcode, label))
     }
 
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {

@@ -3,12 +3,15 @@ package org.spectral.asm.core.code.instruction
 import kotlin.String
 import org.objectweb.asm.MethodVisitor
 import org.spectral.asm.core.code.Instruction
+import org.spectral.asm.core.code.Label
+import org.spectral.asm.core.code.type.JumpInstruction
 import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=154)
-class IFNE : Instruction(154) {
-  override fun accept(visitor: MethodVisitor) {
+class IFNE(override val label: Label) : Instruction(154), JumpInstruction {
 
+  override fun accept(visitor: MethodVisitor) {
+    visitor.visitJumpInsn(opcode, label.label)
   }
 
   override fun toString(): String = "IFNE"
