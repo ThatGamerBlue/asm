@@ -56,7 +56,7 @@ object InstructionUtil {
      * @return Instruction
      */
     fun getInstruction(code: Code, opcode: Int, vararg args: Any?): Instruction {
-        val insn = getInstruction(opcode, args)
+        val insn = getInstruction(opcode, *args)
         insn.code = code
 
         return insn

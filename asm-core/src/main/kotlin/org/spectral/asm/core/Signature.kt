@@ -16,7 +16,7 @@ class Signature(var type: Type) {
 
     val desc: String get() {
         val sb = StringBuilder()
-        if(argumentTypes.isNotEmpty()) {
+        if(type.sort == Type.METHOD) {
             sb.append('(')
             argumentTypes.forEach { arg ->
                 sb.append(arg.toString())

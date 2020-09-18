@@ -17,7 +17,7 @@ import org.objectweb.asm.Label as AsmLabel
  * @property owner Class
  * @constructor
  */
-class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node, Annotatable {
+class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node, ClassMember, Annotatable {
 
     override var access = 0
 
@@ -71,6 +71,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
 
     override fun init() {
         exceptionClasses.forEach { it.cls = pool[it.name] }
+        arguments = extractArgs()
     }
 
     /*
@@ -140,8 +141,8 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
                 index,
                 index,
                 ClassRef(pool, Type.getType(descriptor).className),
-                findLabel(start).index,
-                findLabel(end).index,
+                findLabel(start).offset,
+                findLabel(end).offset,
                 0,
                 "var${index + 1}"
         )
@@ -195,8 +196,49 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
     /**
      * Extracts the arguments from the method's instructions by popping from the local variables.
      */
-    private fun extractArgs() {
+    private fun extractArgs(): MutableList<LocalVariable> {
+        val arguments = mutableListOf<LocalVariable>()
 
+        val argTypes = type.argumentTypes
+        if(argTypes.isEmpty()) return arguments
+        if(code.instructions.isEmpty()) return arguments
+
+        val locals = variables
+        val firstInsn = code.instructions.first()
+
+        var lvIdx = if(this.isStatic) 0 else 1
+
+        for(i in argTypes.indices) {
+            val asmType = argTypes[i]
+            val ref = ClassRef(pool, asmType.className)
+
+            var asmIndex = -1
+            var startIndex = -1
+            var endIndex = -1
+            var name: String? = null
+
+            if(locals.isEmpty()) {
+                for(j in 0 until locals.size) {
+                    val n = locals[i]
+
+                    if(n.index == lvIdx && n.startInsn == firstInsn.offset) {
+                        asmIndex = j
+                        startIndex = n.startInsn
+                        endIndex = n.endInsn
+                        name = n.name
+
+                        break
+                    }
+                }
+            }
+
+            val arg = LocalVariable(this, true, i, lvIdx, asmIndex, ref, startIndex, endIndex, 0, name ?: "arg${i + 1}")
+            arguments.add(arg)
+
+            lvIdx += asmType.size
+        }
+
+        return arguments
     }
 
     override fun toString(): String {

@@ -18,7 +18,7 @@ abstract class Instruction(val opcode: Int) {
     /**
      * Gets the index in  the instruction list this instruction is at.
      */
-    val index: Int get() = code.indexOf(this)
+    val offset: Int get() = code.indexOf(this)
 
     /**
      * Makes the given visitor visit this instruction.

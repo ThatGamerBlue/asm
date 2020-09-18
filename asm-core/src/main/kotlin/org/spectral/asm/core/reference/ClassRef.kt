@@ -1,5 +1,6 @@
 package org.spectral.asm.core.reference
 
+import org.objectweb.asm.Type
 import org.spectral.asm.core.Class
 import org.spectral.asm.core.ClassPool
 
