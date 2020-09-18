@@ -37,6 +37,7 @@ allprojects {
 
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib"
+        implementation "org.jetbrains.kotlin:kotlin-reflect"
         implementation "org.ow2.asm:asm:$asm"
         implementation "org.ow2.asm:asm-commons:$asm"
         implementation "org.ow2.asm:asm-util:$asm"

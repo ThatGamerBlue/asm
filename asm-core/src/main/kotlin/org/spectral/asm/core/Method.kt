@@ -3,11 +3,9 @@ package org.spectral.asm.core
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM9
+import org.objectweb.asm.Opcodes.LDC
 import org.objectweb.asm.Type
-import org.spectral.asm.core.code.Code
-import org.spectral.asm.core.code.Exception
-import org.spectral.asm.core.code.Label
-import org.spectral.asm.core.code.LineNumber
+import org.spectral.asm.core.code.*
 import org.spectral.asm.core.util.InstructionUtil
 import org.objectweb.asm.Label as AsmLabel
 
@@ -99,6 +97,14 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
 
     override fun visitInsn(opcode: Int) {
         code.add(InstructionUtil.getInstruction(opcode))
+    }
+
+    override fun visitIntInsn(opcode: Int, operand: Int) {
+        code.add(InstructionUtil.getInstruction(opcode, operand))
+    }
+
+    override fun visitLdcInsn(value: Any) {
+        code.add(InstructionUtil.getInstruction(LDC, value))
     }
 
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {

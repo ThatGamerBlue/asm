@@ -5,6 +5,7 @@ import io.github.classgraph.ClassGraph
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.common.Opcode
 import kotlin.reflect.KClass
+import kotlin.reflect.full.primaryConstructor
 
 /**
  * Contains utility methods for building and dealing with
@@ -16,7 +17,7 @@ object InstructionUtil {
     /**
      * Backing storage of instruction classes mapped as opcode -> Instruction kotlin class.
      */
-    private val instructionMap = hashMapOf<Int, KClass<out Instruction>>()
+    val instructionMap = hashMapOf<Int, KClass<out Instruction>>()
 
     /**
      * Build the instruction map using class graph to find
@@ -50,8 +51,13 @@ object InstructionUtil {
      * @param opcode Int
      * @return Instruction
      */
-    fun getInstruction(opcode: Int): Instruction {
-        val cls = instructionMap[opcode] ?: throw IndexOutOfBoundsException("No instruction found for opcode $opcode.")
-        return ConstructorAccess.get(cls.java).newInstance()
+     fun getInstruction(opcode: Int, vararg args: Any?): Instruction {
+        val cls = this.instructionMap[opcode] ?: throw IndexOutOfBoundsException("No instruction found for opcode $opcode.")
+
+        if(args.isEmpty()) {
+            return cls.primaryConstructor!!.call()
+        } else {
+            return cls.primaryConstructor!!.call(*args)
+        }
     }
 }
