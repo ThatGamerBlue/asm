@@ -1,5 +1,6 @@
 package org.spectral.asm.core
 
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Type
 import org.spectral.asm.core.reference.ClassRef
 
@@ -10,8 +11,8 @@ class LocalVariable(
         val lvtIndex: Int,
         val asmIndex: Int,
         val typeRef: ClassRef,
-        val startInsnIndex: Int,
-        val endInsnIndex: Int,
+        val startIndex: Int,
+        val endIndex: Int,
         val startOpIndex: Int,
         override var name: String
 ) : Node {
@@ -24,6 +25,10 @@ class LocalVariable(
         /*
          * Nothing to Do
          */
+    }
+
+    fun accept(visitor: MethodVisitor) {
+
     }
 
 }

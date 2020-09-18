@@ -2,6 +2,8 @@ package org.spectral.asm.core.util
 
 import com.esotericsoftware.reflectasm.ConstructorAccess
 import io.github.classgraph.ClassGraph
+import org.spectral.asm.core.ClassPool
+import org.spectral.asm.core.code.Code
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.common.Opcode
 import kotlin.reflect.KClass
@@ -43,6 +45,21 @@ object InstructionUtil {
 
             instructionMap[opcode] = klass as KClass<out Instruction>
         }
+    }
+
+    /**
+     * Gets and sets the [Code] instance on an instruction.
+     *
+     * @param code Code
+     * @param opcode Int
+     * @param args Array<out Any?>
+     * @return Instruction
+     */
+    fun getInstruction(code: Code, opcode: Int, vararg args: Any?): Instruction {
+        val insn = getInstruction(opcode, args)
+        insn.code = code
+
+        return insn
     }
 
     /**

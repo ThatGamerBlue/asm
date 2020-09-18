@@ -101,19 +101,19 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
     }
 
     override fun visitInsn(opcode: Int) {
-        code.add(InstructionUtil.getInstruction(opcode))
+        code.add(InstructionUtil.getInstruction(code, opcode))
     }
 
     override fun visitIntInsn(opcode: Int, operand: Int) {
-        code.add(InstructionUtil.getInstruction(opcode, operand))
+        code.add(InstructionUtil.getInstruction(code, opcode, operand))
     }
 
     override fun visitLdcInsn(value: Any) {
-        code.add(InstructionUtil.getInstruction(LDC, value))
+        code.add(InstructionUtil.getInstruction(code, LDC, value))
     }
 
     override fun visitVarInsn(opcode: Int, index: Int) {
-        code.add(InstructionUtil.getInstruction(opcode, index))
+        code.add(InstructionUtil.getInstruction(code, opcode, index))
     }
 
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {
@@ -123,6 +123,30 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
     override fun visitMaxs(maxStack: Int, maxLocals: Int) {
         this.code.maxStack = maxStack
         this.code.maxLocals = maxLocals
+    }
+
+    override fun visitLocalVariable(
+            name: String,
+            descriptor: String,
+            signature: String?,
+            start: AsmLabel,
+            end: AsmLabel,
+            index: Int
+    ) {
+        val variable = LocalVariable(
+                this,
+                false,
+                index,
+                index,
+                index,
+                ClassRef(pool, Type.getType(descriptor).className),
+                findLabel(start).index,
+                findLabel(end).index,
+                0,
+                "var${index + 1}"
+        )
+
+        variables.add(variable)
     }
 
     override fun visitEnd() {
@@ -137,6 +161,35 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         }
 
         return label.info as Label
+    }
+
+    fun accept(visitor: MethodVisitor) {
+        val annotationVisitor = visitor.visitAnnotationDefault()
+        annotationVisitor?.visitEnd()
+
+        annotations.forEach { annotation ->
+            annotation.accept(visitor.visitAnnotation(annotation.type.descriptor, true))
+        }
+
+        if(code.size > 0) {
+            visitor.visitCode()
+
+            code.exceptions.forEach { exception ->
+                exception.accept(visitor)
+            }
+
+            code.accept(visitor)
+
+            if(variables.isNotEmpty()) {
+                variables.forEach { variable ->
+                    variable.accept(visitor)
+                }
+            }
+
+            visitor.visitMaxs(code.maxStack, code.maxLocals)
+        }
+
+        visitor.visitEnd()
     }
 
     /**

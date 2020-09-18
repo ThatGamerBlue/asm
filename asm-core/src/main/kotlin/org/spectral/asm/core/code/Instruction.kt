@@ -16,6 +16,11 @@ abstract class Instruction(val opcode: Int) {
     lateinit var code: Code internal set
 
     /**
+     * Gets the index in  the instruction list this instruction is at.
+     */
+    val index: Int get() = code.indexOf(this)
+
+    /**
      * Makes the given visitor visit this instruction.
      *
      * @param visitor MethodVisitor
