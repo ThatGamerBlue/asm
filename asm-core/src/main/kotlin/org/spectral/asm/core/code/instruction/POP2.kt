@@ -7,8 +7,9 @@ import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=88)
 class POP2 : Instruction(88) {
-  override fun accept(visitor: MethodVisitor) {
 
+  override fun accept(visitor: MethodVisitor) {
+    visitor.visitInsn(opcode)
   }
 
   override fun toString(): String = "POP2"

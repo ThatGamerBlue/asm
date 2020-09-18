@@ -7,8 +7,9 @@ import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=89)
 class DUP : Instruction(89) {
-  override fun accept(visitor: MethodVisitor) {
 
+  override fun accept(visitor: MethodVisitor) {
+    visitor.visitInsn(opcode)
   }
 
   override fun toString(): String = "DUP"

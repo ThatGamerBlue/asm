@@ -7,8 +7,9 @@ import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=95)
 class SWAP : Instruction(95) {
-  override fun accept(visitor: MethodVisitor) {
 
+  override fun accept(visitor: MethodVisitor) {
+    visitor.visitInsn(opcode)
   }
 
   override fun toString(): String = "SWAP"
