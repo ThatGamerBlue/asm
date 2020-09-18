@@ -22,7 +22,7 @@ abstract class Instruction(val opcode: Int) {
      */
     abstract fun accept(visitor: MethodVisitor)
 
-    abstract fun copy(clonedLabels: Map<Label, Label>): Instruction
+    open fun copy(clonedLabels: Map<Label, Label>): Instruction { throw UnsupportedOperationException() }
 
     abstract override fun toString(): String
 }
