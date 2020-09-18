@@ -6,6 +6,7 @@ import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Opcodes.LDC
 import org.objectweb.asm.Type
 import org.spectral.asm.core.code.*
+import org.spectral.asm.core.reference.ClassRef
 import org.spectral.asm.core.util.InstructionUtil
 import org.objectweb.asm.Label as AsmLabel
 
@@ -26,7 +27,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
 
     override val type: Type get() = Type.getMethodType(signature.desc)
 
-    var exceptionClasses = mutableListOf<ClassName>()
+    var exceptionClasses = mutableListOf<ClassRef>()
 
     /**
      * Creates a [Method] object and initializes required fields.
@@ -54,7 +55,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         /*
          * Add the exceptions if any are provided. (Not null)
          */
-        exceptions?.map { ClassName(it) }?.let { this.exceptionClasses.addAll(it) }
+        exceptions?.map { ClassRef(it) }?.let { this.exceptionClasses.addAll(it) }
     }
 
     override var annotations = mutableListOf<Annotation>()
@@ -63,6 +64,10 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
      * The code or instructions of the method.
      */
     var code = Code(this)
+
+    var variables = mutableListOf<LocalVariable>()
+
+    var arguments = mutableListOf<LocalVariable>()
 
     override fun init() {
         exceptionClasses.forEach { it.cls = pool[it.name] }
@@ -132,6 +137,13 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         }
 
         return label.info as Label
+    }
+
+    /**
+     * Extracts the arguments from the method's instructions by popping from the local variables.
+     */
+    private fun extractArgs() {
+
     }
 
     override fun toString(): String {

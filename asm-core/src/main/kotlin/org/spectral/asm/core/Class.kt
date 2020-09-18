@@ -2,6 +2,7 @@ package org.spectral.asm.core
 
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.ASM9
+import org.spectral.asm.core.reference.ClassRef
 
 /**
  * Represents a Java class object.
@@ -22,9 +23,9 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
 
     override val type get() = Type.getObjectType(name)
 
-    lateinit var parent: ClassName
+    lateinit var parent: ClassRef
 
-    var interfaces = mutableListOf<ClassName>()
+    var interfaces = mutableListOf<ClassRef>()
 
     override var annotations = mutableListOf<Annotation>()
 
@@ -55,8 +56,8 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
         this.version = version
         this.access = access
         this.name = name
-        this.parent = ClassName(superName)
-        this.interfaces = interfaces.map { ClassName(it) }.toMutableList()
+        this.parent = ClassRef(superName)
+        this.interfaces = interfaces.map { ClassRef(it) }.toMutableList()
     }
 
     override fun visitSource(source: String, debug: String?) {

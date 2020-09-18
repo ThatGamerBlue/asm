@@ -1,4 +1,7 @@
-package org.spectral.asm.core
+package org.spectral.asm.core.reference
+
+import org.spectral.asm.core.Class
+import org.spectral.asm.core.ClassPool
 
 /**
  * A named class reference which may or may not exist. Either
@@ -7,7 +10,7 @@ package org.spectral.asm.core
  * Contains a possibly null [ref] which points to the [Class] if the reference
  * is inside of the class pool.
  */
-class ClassName(val name: String) {
+class ClassRef(val name: String) {
 
     /**
      * The reference [Class] if its contained in the pool.
