@@ -1,74 +1,140 @@
 package org.spectral.asm.core
 
-import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.ASM8
+import org.objectweb.asm.Opcodes.ASM9
+import org.objectweb.asm.Opcodes.LDC
 import org.objectweb.asm.Type
-import org.objectweb.asm.tree.MethodNode
-import java.lang.reflect.Modifier
+import org.spectral.asm.core.code.*
+import org.spectral.asm.core.util.InstructionUtil
+import org.objectweb.asm.Label as AsmLabel
 
-class Method private constructor(
-        val pool: ClassPool,
-        val owner: Class,
-        override val node: MethodNode,
-        override val real: Boolean
-) : MethodVisitor(ASM8, node), ClassMember<Method> {
+/**
+ * Represents a Java Method.
+ *
+ * @property pool ClassPool
+ * @property owner Class
+ * @constructor
+ */
+class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node, Annotatable {
 
-    constructor(pool: ClassPool, owner: Class, node: MethodNode) : this(pool, owner, node, true)
+    override var access = 0
 
-    constructor(pool: ClassPool, owner: Class, name: String, desc: String) : this(pool, owner, methodnode(name, desc), false)
+    override var name = ""
 
-    constructor(pool: ClassPool, owner: Class, type: Type) : this(pool, owner, methodnode(type.className, type.descriptor), false)
+    lateinit var signature: Signature
 
-    internal fun init() {
-        returnTypeClass = pool.getOrCreate(type.returnType)
-        type.argumentTypes.forEach { argTypeClasses.add(pool.getOrCreate(it)) }
+    override val type: Type get() = Type.getMethodType(signature.desc)
+
+    var exceptionClasses = mutableListOf<ClassName>()
+
+    /**
+     * Creates a [Method] object and initializes required fields.
+     *
+     * @param pool ClassPool
+     * @param owner Class
+     * @param access Int
+     * @param name String
+     * @param desc String
+     * @param exceptions Array<out String>?
+     * @constructor
+     */
+    constructor(
+            pool: ClassPool,
+            owner: Class,
+            access: Int,
+            name: String,
+            desc: String,
+            exceptions: Array<out String>?
+    ) : this(pool, owner) {
+        this.access = access
+        this.name = name
+        this.signature = Signature(Type.getMethodType(desc))
+
+        /*
+         * Add the exceptions if any are provided. (Not null)
+         */
+        exceptions?.map { ClassName(it) }?.let { this.exceptionClasses.addAll(it) }
     }
 
-    override val name get() = node.name
+    override var annotations = mutableListOf<Annotation>()
 
-    override val desc get() = node.desc
+    /**
+     * The code or instructions of the method.
+     */
+    var code = Code(this)
 
-    override val access get() = node.access
-
-    override val type: Type = Type.getMethodType(desc)
-
-    val id get() = Triple(owner.id, name, type)
-
-    val instructions get() = node.instructions
-
-    lateinit var returnTypeClass: Class
-
-    val argTypeClasses = mutableListOf<Class>()
-
-    override val isStatic: Boolean get() = Modifier.isStatic(access)
-
-    override val isPrivate: Boolean get() = Modifier.isPrivate(access)
-
-    val isConstructor: Boolean get() = name == "<init>"
-
-    val isInitializer: Boolean get() = name == "<clinit>"
-
-    fun accept(visitor: ClassVisitor) {
-        node.accept(visitor)
-        init()
+    override fun init() {
+        exceptionClasses.forEach { it.cls = pool[it.name] }
     }
 
-    fun accept(visitor: MethodVisitor) {
-        node.accept(visitor)
-        init()
+    /*
+     * VISITOR METHODS
+     */
+
+    override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+        if(visible) {
+            val annotation = Annotation(Type.getType(descriptor))
+            annotations.add(annotation)
+
+            return annotation
+        }
+
+        return null
+    }
+
+    /*
+     * INSTRUCTION VISITOR METHODS
+     */
+
+    override fun visitLabel(label: AsmLabel) {
+        code.add(findLabel(label))
+    }
+
+    override fun visitLineNumber(line: Int, start: AsmLabel) {
+        code.add(LineNumber(line, findLabel(start)))
+    }
+
+    override fun visitInsn(opcode: Int) {
+        code.add(InstructionUtil.getInstruction(opcode))
+    }
+
+    override fun visitIntInsn(opcode: Int, operand: Int) {
+        code.add(InstructionUtil.getInstruction(opcode, operand))
+    }
+
+    override fun visitLdcInsn(value: Any) {
+        code.add(InstructionUtil.getInstruction(LDC, value))
+    }
+
+    override fun visitVarInsn(opcode: Int, index: Int) {
+        code.add(InstructionUtil.getInstruction(opcode, index))
+    }
+
+    override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {
+        code.exceptions.add(Exception(findLabel(start), findLabel(end), handler?.let { findLabel(it) }, type))
+    }
+
+    override fun visitMaxs(maxStack: Int, maxLocals: Int) {
+        this.code.maxStack = maxStack
+        this.code.maxLocals = maxLocals
+    }
+
+    override fun visitEnd() {
+        /*
+         * Nothing to do.
+         */
+    }
+
+    internal fun findLabel(label: AsmLabel): Label {
+        if(label.info !is Label) {
+            label.info = Label()
+        }
+
+        return label.info as Label
     }
 
     override fun toString(): String {
-        return "$owner.$name$desc"
-    }
-
-    companion object {
-        private fun methodnode(name: String, desc: String): MethodNode {
-            return MethodNode(ASM8).apply {
-                this.name = name
-                this.desc = desc
-            }
-        }
+        return "$owner.$name${signature.desc}"
     }
 }

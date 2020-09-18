@@ -1,57 +1,82 @@
 package org.spectral.asm.core
 
-import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.FieldVisitor
-import org.objectweb.asm.Opcodes.ASM8
+import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Type
-import org.objectweb.asm.tree.FieldNode
-import java.lang.reflect.Modifier
 
-class Field private constructor(
-        val pool: ClassPool,
-        val owner: Class,
-        override val node: FieldNode,
-        override val real: Boolean
-) : FieldVisitor(ASM8), ClassMember<Field> {
+/**
+ * Represents a Java field.
+ *
+ * @property pool ClassPool
+ * @property owner Class
+ * @constructor
+ */
+class Field(val pool: ClassPool, val owner: Class) : FieldVisitor(ASM9), Node, Annotatable {
 
-    constructor(pool: ClassPool, owner: Class, node: FieldNode) : this(pool, owner, node, true)
+    override var access = 0
 
-    constructor(pool: ClassPool, owner: Class, name: String, desc: String) : this(pool, owner, fieldnode(name, desc), false)
+    override var name = ""
 
-    internal fun init() {
-        typeClass = pool.getOrCreate(type)
+    lateinit var signature: Signature
+
+    override val type get() = Type.getType(signature.desc)
+
+    var value: Any? = null
+
+    /**
+     * Creates an initializes the field values.
+     *
+     * @param pool ClassPool
+     * @param owner Class
+     * @param access Int
+     * @param name String
+     * @param desc String
+     * @param value Any?
+     * @constructor
+     */
+    constructor(
+            pool: ClassPool,
+            owner: Class,
+            access: Int,
+            name: String,
+            desc: String,
+            value: Any?
+    ) : this(pool, owner) {
+        this.access = access
+        this.name = name
+        this.signature = Signature(Type.getType(desc))
+        this.value = value
     }
 
-    override val name get() = node.name
+    override val annotations = mutableListOf<Annotation>()
 
-    override val desc get() = node.desc
+    override fun init() {
 
-    override val access get() = node.access
+    }
 
-    override val type = Type.getType(desc)
+    /*
+     * VISITOR METHODS
+     */
 
-    val id get() = owner.id to name
+    override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+        if(visible) {
+            val annotation = Annotation(Type.getType(descriptor))
+            annotations.add(annotation)
 
-    lateinit var typeClass: Class
+            return annotation
+        }
 
-    override val isStatic: Boolean get() = Modifier.isStatic(access)
+        return null
+    }
 
-    override val isPrivate: Boolean get() = Modifier.isPrivate(access)
-
-    val value: Any? get() = node.value
-
-    fun accept(visitor: ClassVisitor) {
-        node.accept(visitor)
-        init()
+    override fun visitEnd() {
+        /*
+         * Nothing to Do
+         */
     }
 
     override fun toString(): String {
         return "$owner.$name"
-    }
-
-    companion object {
-        private fun fieldnode(name: String, desc: String): FieldNode {
-            return FieldNode(0, name, desc, null, null)
-        }
     }
 }

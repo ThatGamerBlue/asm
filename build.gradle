@@ -37,23 +37,11 @@ allprojects {
 
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib"
-
+        implementation "org.jetbrains.kotlin:kotlin-reflect"
         implementation "org.ow2.asm:asm:$asm"
         implementation "org.ow2.asm:asm-commons:$asm"
         implementation "org.ow2.asm:asm-util:$asm"
-        implementation "org.ow2.asm:asm-tree:$asm"
         implementation "com.google.guava:guava:$guava"
-
-        testImplementation "org.junit.jupiter:junit-jupiter-api:$junit"
-        testImplementation "org.junit.jupiter:junit-jupiter-engine:$junit"
-        testImplementation "io.mockk:mockk:$mockk"
-        testImplementation "org.jetbrains.kotlin:kotlin-test"
-        testImplementation "com.natpryce:hamkrest:$hamkrest"
-        testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect"
-    }
-
-    test {
-        useJUnitPlatform()
     }
 
     detekt {

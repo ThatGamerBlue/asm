@@ -1,36 +1,79 @@
 package org.spectral.asm.core
 
-import org.objectweb.asm.Type
-import java.io.File
-import java.util.concurrent.ConcurrentMap
+/**
+ * Represents a collection of [Class] java bytecode objects.
+ *
+ * @property classMap HashMap<String, Class>
+ */
+class ClassPool : MutableList<Class> {
 
-interface ClassPool : ConcurrentMap<Type, Class> {
+    /**
+     * Backing storage of classes to track order.
+     */
+    private var classes = mutableListOf<Class>()
 
-    fun addClass(element: Class)
+    /**
+     * Backing storage of classes by their name -> instance
+     */
+    private var classMap = mutableMapOf<String, Class>()
 
-    fun addClassAndVisit(element: Class)
+    /**
+     * The number of classes in the pool.
+     */
+    override val size get() = classes.size
 
-    fun addClass(bytes: ByteArray)
+    override fun contains(element: Class): Boolean = classes.contains(element)
 
-    fun addClass(file: File)
+    override fun containsAll(elements: Collection<Class>): Boolean = classes.containsAll(elements)
 
-    fun addArchive(file: File)
+    override operator fun get(index: Int): Class = classes[index]
 
-    fun addDirectory(dir: File)
+    operator fun get(name: String): Class? = classMap[name]
 
-    fun saveArchive(file: File)
+    override fun indexOf(element: Class): Int = classes.indexOf(element)
 
-    fun saveDirectory(dir: File)
+    override fun isEmpty(): Boolean = classes.isEmpty()
 
-    operator fun get(name: String): Class?
+    override fun iterator(): MutableIterator<Class> = classes.listIterator()
 
-    fun getOrCreate(name: String): Class
+    override fun lastIndexOf(element: Class): Int = classes.lastIndexOf(element)
 
-    fun getOrCreate(type: Type): Class
+    override fun add(element: Class): Boolean = classes.add(element).apply { rebuildClassMap() }
 
-    companion object {
-        fun create(): ClassPool {
-            return ClassContainer()
+    override fun add(index: Int, element: Class) = classes.add(index, element).apply { rebuildClassMap() }
+
+    override fun addAll(index: Int, elements: Collection<Class>): Boolean = classes.addAll(index, elements).apply { rebuildClassMap() }
+
+    override fun addAll(elements: Collection<Class>): Boolean = classes.addAll(elements)
+
+    override fun clear() = classes.clear().apply { rebuildClassMap() }
+
+    override fun listIterator(): MutableListIterator<Class> = classes.listIterator()
+
+    override fun listIterator(index: Int): MutableListIterator<Class> = classes.listIterator(index)
+
+    override fun remove(element: Class): Boolean = classes.remove(element).apply { rebuildClassMap() }
+
+    override fun removeAll(elements: Collection<Class>): Boolean = classes.removeAll(elements).apply { rebuildClassMap() }
+
+    override fun removeAt(index: Int): Class = classes.removeAt(index).apply { rebuildClassMap() }
+
+    override fun retainAll(elements: Collection<Class>): Boolean = classes.retainAll(elements)
+
+    override fun set(index: Int, element: Class): Class = classes.set(index, element).apply { rebuildClassMap() }
+
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<Class> = classes.subList(fromIndex, toIndex)
+
+    private fun rebuildClassMap() {
+        classMap = classes.associateBy { it.name }.toMutableMap()
+    }
+
+    /**
+     * Initializes the pool elements after all have been added.
+     */
+    fun init() {
+        this.forEach { cls ->
+            cls.init()
         }
     }
 }

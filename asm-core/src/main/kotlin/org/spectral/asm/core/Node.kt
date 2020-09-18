@@ -2,11 +2,13 @@ package org.spectral.asm.core
 
 import org.objectweb.asm.Type
 
-interface Node<T> {
+interface Node {
 
-    val node: Any
+    var access: Int
+
+    var name: String
 
     val type: Type
 
-    val real: Boolean
+    fun init()
 }

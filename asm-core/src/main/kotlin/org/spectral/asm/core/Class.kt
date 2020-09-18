@@ -1,82 +1,111 @@
 package org.spectral.asm.core
 
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes.ASM8
-import org.objectweb.asm.Type
-import org.objectweb.asm.tree.ClassNode
-import java.util.concurrent.ConcurrentHashMap
+import org.objectweb.asm.*
+import org.objectweb.asm.Opcodes.ASM9
 
-class Class private constructor(
-        val pool: ClassPool,
-        override val node: ClassNode,
-        override val type: Type,
-        override val real: Boolean
-): ClassVisitor(ASM8, node), Node<Class> {
+/**
+ * Represents a Java class object.
+ * Extends the ASM [ClassVisitor]
+ *
+ * @property pool ClassPool
+ * @constructor
+ */
+class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
 
-    constructor(pool: ClassPool, node: ClassNode) : this(pool, node, Type.getObjectType(node.name), true)
+    var version: Int = 0
 
-    constructor(pool: ClassPool, name: String) : this(pool, classnode(name.replace(".", "/")), Type.getObjectType(name.replace(".", "/")), false)
+    override var access: Int = 0
 
-    constructor(pool: ClassPool, type: Type) : this(pool, classnode(type.className.replace(".", "/")), type, false)
+    var source: String = ""
 
-    val name get() = node.name
+    override var name: String = ""
 
-    var elementClass: Class? = null
+    override val type get() = Type.getObjectType(name)
 
-    val access get() = node.access
+    lateinit var parent: ClassName
 
-    var parent: Class? = null
-        private set
+    var interfaces = mutableListOf<ClassName>()
 
-    val children = hashSetOf<Class>()
+    override var annotations = mutableListOf<Annotation>()
 
-    var interfaces = hashSetOf<Class>()
+    var methods = mutableListOf<Method>()
 
-    val implementers = hashSetOf<Class>()
+    var fields = mutableListOf<Field>()
 
-    val isArray: Boolean get() = type.sort == Type.ARRAY
-
-    private val methodMap = ConcurrentHashMap<Triple<Type, String, Type>, Method>()
-
-    val methods: List<Method> get() = methodMap.values.toList()
-
-    private val fieldMap = ConcurrentHashMap<Pair<Type, String>, Field>()
-
-    val fields: List<Field> get() = fieldMap.values.toList()
-
-    val id get() = type
-
-    fun accept(classVisitor: ClassVisitor) {
-        node.accept(classVisitor)
-
-        parent = pool.getOrCreate(node.superName)
-        parent?.children?.add(this)
-
-        interfaces.clear()
-        interfaces.addAll(node.interfaces.mapNotNull { pool.getOrCreate(it) })
-        interfaces.forEach { it.implementers.add(this) }
-
-        if(isArray) {
-            elementClass = pool.getOrCreate(name.replace("[]", ""))
-        }
-
-        node.methods.forEach { Method(pool, this, it).apply { methodMap[this.id] = this } }
-        node.fields.forEach { Field(pool, this, it).apply { fieldMap[this.id] = this } }
+    override fun init() {
+        parent.cls = pool[parent.name]
+        interfaces.forEach { it.cls = pool[it.name] }
 
         methods.forEach { it.init() }
         fields.forEach { it.init() }
     }
 
-    override fun toString(): String {
-        return name
+    /*
+     * VISITOR METHODS
+     */
+
+    override fun visit(
+            version: Int,
+            access: Int,
+            name: String,
+            signature: String?,
+            superName: String,
+            interfaces: Array<out String>
+    ) {
+        this.version = version
+        this.access = access
+        this.name = name
+        this.parent = ClassName(superName)
+        this.interfaces = interfaces.map { ClassName(it) }.toMutableList()
     }
 
-    companion object {
-        private fun classnode(name: String): ClassNode {
-            return ClassNode(ASM8).apply {
-                this.name = name
-                this.superName = "java/lang/Object"
-            }
+    override fun visitSource(source: String, debug: String?) {
+        this.source = source
+    }
+
+    override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+        if(visible) {
+            val annotation = Annotation(Type.getType(descriptor))
+            annotations.add(annotation)
+
+            return annotation
         }
+
+        return null
+    }
+
+    override fun visitMethod(
+            access: Int,
+            name: String,
+            descriptor: String,
+            signature: String?,
+            exceptions: Array<out String>?
+    ): MethodVisitor {
+        val method = Method(pool, this, access, name, descriptor, exceptions)
+        methods.add(method)
+
+        return method
+    }
+
+    override fun visitField(
+            access: Int,
+            name: String,
+            descriptor: String,
+            signature: String?,
+            value: Any?
+    ): FieldVisitor {
+        val field = Field(pool, this, access, name, descriptor, value)
+        fields.add(field)
+        return field
+    }
+
+    override fun visitEnd() {
+        /*
+         * Nothing to do
+         */
+    }
+
+    override fun toString(): String {
+        return name
     }
 }
