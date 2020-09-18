@@ -7,9 +7,7 @@ import org.spectral.asm.core.code.type.ConstantInstruction
 import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=11)
-class FCONST_0 : Instruction(11), ConstantInstruction {
-
-  override val cst: Float = 0F
+class FCONST_0 : Instruction(11) {
 
   override fun accept(visitor: MethodVisitor) {
     visitor.visitInsn(opcode)

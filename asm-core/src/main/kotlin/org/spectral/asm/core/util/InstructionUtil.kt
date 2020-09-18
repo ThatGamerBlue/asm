@@ -54,10 +54,10 @@ object InstructionUtil {
      fun getInstruction(opcode: Int, vararg args: Any?): Instruction {
         val cls = this.instructionMap[opcode] ?: throw IndexOutOfBoundsException("No instruction found for opcode $opcode.")
 
-        if(args.isEmpty()) {
-            return cls.primaryConstructor!!.call()
+        return if(args.isEmpty()) {
+            cls.primaryConstructor!!.call()
         } else {
-            return cls.primaryConstructor!!.call(*args)
+            cls.primaryConstructor!!.call(*args)
         }
     }
 }
