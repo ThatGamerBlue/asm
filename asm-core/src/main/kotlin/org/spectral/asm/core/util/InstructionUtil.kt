@@ -34,7 +34,7 @@ object InstructionUtil {
              * Grab the [Opcode] annotation from the cls. If
              * it doesnt exist. skip the registration.
              */
-            val annotation = cls.annotationInfo.firstOrNull { it.name == Opcode::class.simpleName } ?:
+            val annotation = cls.annotationInfo.firstOrNull { it.name == Opcode::class.qualifiedName } ?:
                     throw IllegalStateException("Found instruction class '${cls.simpleName}' without '@Opcode' annotation.")
 
             val opcode = (annotation.loadClassAndInstantiate() as Opcode).value
