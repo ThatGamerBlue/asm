@@ -1,11 +1,15 @@
 package org.spectral.asm.core.util
 
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
 import org.spectral.asm.core.Class
 import org.spectral.asm.core.ClassPool
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
 
 object JarUtil {
 
@@ -37,5 +41,27 @@ object JarUtil {
         pool.init()
 
         return pool
+    }
+
+    fun writeJar(pool: ClassPool, filePath: String) {
+        val file = File(filePath)
+
+        if(file.exists()) {
+            file.delete()
+        }
+
+        val jos = JarOutputStream(FileOutputStream(file))
+
+        pool.forEach { cls ->
+            jos.putNextEntry(JarEntry(cls.name + ".class"))
+
+            val writer = ClassWriter(ClassWriter.COMPUTE_MAXS)
+            cls.accept(writer)
+
+            jos.write(writer.toByteArray())
+            jos.closeEntry()
+        }
+
+        jos.close()
     }
 }
