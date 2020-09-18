@@ -76,6 +76,14 @@ class Field(val pool: ClassPool, val owner: Class) : FieldVisitor(ASM9), Node, A
          */
     }
 
+    fun accept(visitor: FieldVisitor) {
+        annotations.forEach { annotation ->
+            annotation.accept(visitor.visitAnnotation(annotation.type.descriptor, true))
+        }
+
+        visitor.visitEnd()
+    }
+
     override fun toString(): String {
         return "$owner.$name"
     }

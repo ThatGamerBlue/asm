@@ -106,6 +106,30 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
          */
     }
 
+    fun accept(visitor: ClassVisitor) {
+        val interfs = interfaces.map { it.name }.toTypedArray()
+
+        visitor.visit(version, access, name, null, parent.name, interfs)
+        visitor.visitSource(source, null)
+
+        annotations.forEach { annotation ->
+            annotation.accept(visitor.visitAnnotation(annotation.type.descriptor, true))
+        }
+
+        fields.forEach { field ->
+            val fv = visitor.visitField(field.access, field.name, field.signature.desc, null, field.value)
+            field.accept(fv)
+        }
+
+        methods.forEach { method ->
+            val exceptions = method.exceptionClasses.map { it.name }.toTypedArray().let { if(it.isEmpty()) null else it }
+            val mv = visitor.visitMethod(method.access, method.name, method.signature.desc, null, exceptions)
+            method.accept(mv)
+        }
+
+        visitor.visitEnd()
+    }
+
     override fun toString(): String {
         return name
     }
