@@ -121,7 +121,15 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
     }
 
     override fun visitJumpInsn(opcode: Int, label: AsmLabel) {
-        code.add(InstructionUtil.getInstruction(code, opcode, label))
+        code.add(InstructionUtil.getInstruction(code, opcode, findLabel(label)))
+    }
+
+    override fun visitLookupSwitchInsn(dflt: AsmLabel, keys: IntArray, labels: Array<out AsmLabel>) {
+        code.add(InstructionUtil.getInstruction(code, LOOKUPSWITCH, findLabel(dflt), keys.toList(), labels.map { findLabel(it) }.toList()))
+    }
+
+    override fun visitTableSwitchInsn(min: Int, max: Int, dflt: AsmLabel, vararg labels: AsmLabel) {
+        code.add(InstructionUtil.getInstruction(code, TABLESWITCH, min, max, findLabel(dflt), labels.map { findLabel(it) }.toList()))
     }
 
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {
