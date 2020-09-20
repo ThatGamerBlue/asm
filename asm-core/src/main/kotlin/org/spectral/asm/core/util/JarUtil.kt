@@ -28,7 +28,7 @@ object JarUtil {
                         val cls = Class(pool)
                         val reader = ClassReader(jar.getInputStream(it))
 
-                        reader.accept(cls, ClassReader.SKIP_FRAMES)
+                        reader.accept(cls, 0)
 
                         pool.add(cls)
                     }

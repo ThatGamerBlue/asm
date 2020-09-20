@@ -1,9 +1,9 @@
 package org.spectral.asm.core.code.type
 
-sealed class ArrayInstruction {
+interface ArrayInstruction {
 
-    interface Store {}
+    interface Store : ArrayInstruction {}
 
-    interface Load {}
+    interface Load : ArrayInstruction {}
 
 }

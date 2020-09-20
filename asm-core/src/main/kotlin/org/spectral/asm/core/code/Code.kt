@@ -77,7 +77,7 @@ class Code(val method: Method) {
     fun resetLabels() {
         insnList.forEach { insn ->
             if(insn is Label) {
-                insn.label = AsmLabel()
+                insn.label = null
             }
         }
     }

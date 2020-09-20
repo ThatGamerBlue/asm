@@ -70,11 +70,10 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
 
     var variables = mutableListOf<LocalVariable>()
 
-    var arguments = mutableListOf<LocalVariable>()
+    var arguments = mutableListOf<Argument>()
 
     override fun init() {
         exceptionClasses.forEach { it.cls = pool[it.name] }
-        arguments = extractArgs()
 
         /*
          * Update instruction refs.
@@ -169,8 +168,21 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         code.add(InstructionUtil.getInstruction(code, opcode, methodRef))
     }
 
+    override fun visitTypeInsn(opcode: Int, type: String) {
+        code.add(InstructionUtil.getInstruction(code, opcode, Type.getObjectType(type)))
+    }
+
+    override fun visitMultiANewArrayInsn(descriptor: String, numDimensions: Int) {
+        code.add(InstructionUtil.getInstruction(code, MULTIANEWARRAY, Type.getType(descriptor), numDimensions))
+    }
+
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {
         code.exceptions.add(Exception(findLabel(start), findLabel(end), handler?.let { findLabel(it) }, type))
+    }
+
+    override fun visitParameter(name: String?, access: Int) {
+        val arg = Argument(name, access)
+        arguments.add(arg)
     }
 
     override fun visitMaxs(maxStack: Int, maxLocals: Int) {
@@ -186,20 +198,13 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
             end: AsmLabel,
             index: Int
     ) {
-        val variable = LocalVariable(
-                this,
-                false,
-                index,
-                index,
-                index,
-                ClassRef(pool, Type.getType(descriptor).className),
-                findLabel(start).offset,
-                findLabel(end).offset,
-                0,
-                "var${index + 1}"
-        )
+        val lv = LocalVariable(this, name, descriptor, signature, findLabel(start), findLabel(end), index)
 
-        variables.add(variable)
+        arguments.forEach { arg ->
+            if(arg.name == name) {
+                arg.variable = lv
+            }
+        }
     }
 
     override fun visitEnd() {
@@ -208,7 +213,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
          */
     }
 
-    internal fun findLabel(label: AsmLabel): Label {
+    private fun findLabel(label: AsmLabel): Label {
         if(label.info !is Label) {
             label.info = Label()
         }
@@ -216,26 +221,60 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         return label.info as Label
     }
 
-    fun accept(visitor: MethodVisitor) {
-        val annotationVisitor = visitor.visitAnnotationDefault()
-        annotationVisitor?.visitEnd()
+    private fun findLabels(labels: Array<AsmLabel>): Array<Label> {
+        return labels.map { findLabel(it) }.toTypedArray()
+    }
 
-        annotations.forEach { annotation ->
-            annotation.accept(visitor.visitAnnotation(annotation.type.descriptor, true))
+    private fun findLabels(elements: Array<out Any>): Array<Any> {
+        val ret = mutableListOf<Any>()
+        for(i in elements.indices) {
+            var o = elements[i]
+            if(o is AsmLabel) {
+                o = findLabel(o)
+            }
+            ret.add(i, o)
+        }
+
+        return ret.toTypedArray()
+    }
+
+    fun accept(visitor: MethodVisitor) {
+        if(annotations.isNotEmpty()) {
+            annotations.forEach { annotation ->
+                annotation.accept(visitor.visitAnnotation(annotation.type.descriptor, true))
+            }
         }
 
         if(code.size > 0) {
+            code.resetLabels()
             visitor.visitCode()
 
-            code.exceptions.forEach { exception ->
-                exception.accept(visitor)
+            if(code.exceptions.isNotEmpty()) {
+                code.exceptions.forEach {
+                    it.accept(visitor)
+                }
             }
 
             code.accept(visitor)
 
-            if(variables.isNotEmpty()) {
-                variables.forEach { variable ->
-                    variable.accept(visitor)
+            if(arguments.isNotEmpty()) {
+                var start: Label? = null
+                var end: Label? = null
+
+                code.instructions.forEach {
+                    if(it is Label) {
+                        if(start == null) {
+                            start = it
+                        }
+
+                        end = it
+                    }
+                }
+
+                arguments.forEach { arg ->
+                    if(arg.variable == null) return@forEach
+                    val lv = arg.variable!!
+                    visitor.visitLocalVariable(lv.name, lv.desc, lv.signature, start!!.label, end!!.label, lv.index)
                 }
             }
 
@@ -243,54 +282,6 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         }
 
         visitor.visitEnd()
-    }
-
-    /**
-     * Extracts the arguments from the method's instructions by popping from the local variables.
-     */
-    private fun extractArgs(): MutableList<LocalVariable> {
-        val arguments = mutableListOf<LocalVariable>()
-
-        val argTypes = type.argumentTypes
-        if(argTypes.isEmpty()) return arguments
-        if(code.instructions.isEmpty()) return arguments
-
-        val locals = variables
-        val firstInsn = code.instructions.first()
-
-        var lvIdx = if(this.isStatic) 0 else 1
-
-        for(i in argTypes.indices) {
-            val asmType = argTypes[i]
-            val ref = ClassRef(pool, asmType.className)
-
-            var asmIndex = -1
-            var startIndex = -1
-            var endIndex = -1
-            var name: String? = null
-
-            if(locals.isEmpty()) {
-                for(j in 0 until locals.size) {
-                    val n = locals[i]
-
-                    if(n.index == lvIdx && n.startInsn == firstInsn.offset) {
-                        asmIndex = j
-                        startIndex = n.startInsn
-                        endIndex = n.endInsn
-                        name = n.name
-
-                        break
-                    }
-                }
-            }
-
-            val arg = LocalVariable(this, true, i, lvIdx, asmIndex, ref, startIndex, endIndex, 0, name ?: "arg${i + 1}")
-            arguments.add(arg)
-
-            lvIdx += asmType.size
-        }
-
-        return arguments
     }
 
     override fun toString(): String {
