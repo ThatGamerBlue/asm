@@ -6,8 +6,10 @@ import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import org.spectral.asm.core.code.*
 import org.spectral.asm.core.code.type.FieldInstruction
+import org.spectral.asm.core.code.type.InvokeInstruction
 import org.spectral.asm.core.reference.ClassRef
 import org.spectral.asm.core.reference.FieldRef
+import org.spectral.asm.core.reference.MethodRef
 import org.spectral.asm.core.util.InstructionUtil
 import org.objectweb.asm.Label as AsmLabel
 
@@ -86,6 +88,14 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
                     val field = cls?.getField(insn.field.name, insn.field.desc)
                     insn.field.field = field
                 }
+
+                is InvokeInstruction -> {
+                    val cls = pool[insn.method.owner.name]
+                    insn.method.owner.cls = cls
+
+                    val method = cls?.getMethod(insn.method.name, insn.method.desc)
+                    insn.method.method = method
+                }
             }
         }
     }
@@ -152,6 +162,11 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
     override fun visitFieldInsn(opcode: Int, owner: String, name: String, descriptor: String) {
         val fieldRef = FieldRef(ClassRef(owner), name, descriptor)
         code.add(InstructionUtil.getInstruction(code, opcode, fieldRef))
+    }
+
+    override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
+        val methodRef = MethodRef(ClassRef(owner), name, descriptor, isInterface)
+        code.add(InstructionUtil.getInstruction(code, opcode, methodRef))
     }
 
     override fun visitTryCatchBlock(start: AsmLabel, end: AsmLabel, handler: AsmLabel?, type: String?) {
