@@ -214,28 +214,11 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
     }
 
     private fun findLabel(label: AsmLabel): Label {
-        if(label.info !is Label) {
-            label.info = Label()
+        if(!code.labelMap.containsKey(label)) {
+            code.labelMap[label] = Label(label)
         }
 
-        return label.info as Label
-    }
-
-    private fun findLabels(labels: Array<AsmLabel>): Array<Label> {
-        return labels.map { findLabel(it) }.toTypedArray()
-    }
-
-    private fun findLabels(elements: Array<out Any>): Array<Any> {
-        val ret = mutableListOf<Any>()
-        for(i in elements.indices) {
-            var o = elements[i]
-            if(o is AsmLabel) {
-                o = findLabel(o)
-            }
-            ret.add(i, o)
-        }
-
-        return ret.toTypedArray()
+        return code.labelMap[label]!!
     }
 
     fun accept(visitor: MethodVisitor) {
@@ -247,11 +230,21 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
 
         if(code.size > 0) {
             code.resetLabels()
+
             visitor.visitCode()
 
             if(code.exceptions.isNotEmpty()) {
-                code.exceptions.forEach {
-                    it.accept(visitor)
+
+                code.exceptions.forEach { exception ->
+                    /*
+                     * Rebuild the exception handler labels.
+                     */
+                    visitor.visitTryCatchBlock(
+                            findLabel(exception.start.label).label,
+                            findLabel(exception.end.label).label,
+                            if(exception.handler != null) findLabel(exception.handler.label).label else null,
+                            exception.catchType
+                    )
                 }
             }
 

@@ -24,6 +24,8 @@ class Code(val method: Method) {
 
     var exceptions = mutableListOf<Exception>()
 
+    val labelMap = hashMapOf<AsmLabel, Label>()
+
     val size: Int get() = insnList.size
 
     operator fun get(index: Int): Instruction {
@@ -75,9 +77,13 @@ class Code(val method: Method) {
     }
 
     fun resetLabels() {
+        labelMap.clear()
+
         insnList.forEach { insn ->
             if(insn is Label) {
-                insn.label = null
+                val label = AsmLabel()
+                insn.label = label
+                labelMap[label] = insn
             }
         }
     }

@@ -10,7 +10,7 @@ import org.objectweb.asm.MethodVisitor
  * @property label The ASM Label.
  * @constructor
  */
-class Label(var label: Label?) : Instruction(-1) {
+class Label(var label: Label) : Instruction(-1) {
 
     /**
      * Creates a label without any associated ASM [Label]

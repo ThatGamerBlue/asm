@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.spectral.asm.core.Class
 import org.spectral.asm.core.ClassPool
+import org.spectral.asm.core.common.NonLoadingClassWriter
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -28,7 +29,7 @@ object JarUtil {
                         val cls = Class(pool)
                         val reader = ClassReader(jar.getInputStream(it))
 
-                        reader.accept(cls, 0)
+                        reader.accept(cls, ClassReader.SKIP_FRAMES)
 
                         pool.add(cls)
                     }
@@ -55,7 +56,7 @@ object JarUtil {
         pool.forEach { cls ->
             jos.putNextEntry(JarEntry(cls.name + ".class"))
 
-            val writer = ClassWriter(ClassWriter.COMPUTE_MAXS)
+            val writer = NonLoadingClassWriter(pool, ClassWriter.COMPUTE_MAXS)
             cls.accept(writer)
 
             jos.write(writer.toByteArray())

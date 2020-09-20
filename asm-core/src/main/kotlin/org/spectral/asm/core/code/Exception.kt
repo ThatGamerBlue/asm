@@ -12,8 +12,4 @@ import org.objectweb.asm.MethodVisitor
  */
 class Exception(val start: Label, val end: Label, val handler: Label?, val catchType: String?) {
 
-    fun accept(visitor: MethodVisitor) {
-        visitor.visitTryCatchBlock(start.label, end.label, handler?.label, catchType)
-    }
-
 }

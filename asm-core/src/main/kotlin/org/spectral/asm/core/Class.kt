@@ -3,6 +3,7 @@ package org.spectral.asm.core
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.ASM9
 import org.spectral.asm.core.reference.ClassRef
+import java.lang.reflect.Modifier
 
 /**
  * Represents a Java class object.
@@ -32,6 +33,8 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
     var methods = mutableListOf<Method>()
 
     var fields = mutableListOf<Field>()
+
+    val isInterface: Boolean get() = Modifier.isInterface(access)
 
     override fun init() {
         parent.cls = pool[parent.name]
