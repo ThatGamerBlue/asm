@@ -41,6 +41,14 @@ class Class(val pool: ClassPool) : ClassVisitor(ASM9), Node, Annotatable {
         fields.forEach { it.init() }
     }
 
+    fun getMethod(name: String, desc: String): Method? {
+        return methods.firstOrNull { it.name == name && it.signature.desc == desc }
+    }
+
+    fun getField(name: String, desc: String): Field? {
+        return fields.firstOrNull { it.name == name && it.signature.desc == desc }
+    }
+
     /*
      * VISITOR METHODS
      */
