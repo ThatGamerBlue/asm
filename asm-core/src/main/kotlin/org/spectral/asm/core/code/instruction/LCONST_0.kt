@@ -5,9 +5,15 @@ import org.objectweb.asm.MethodVisitor
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.code.type.ConstantInstruction
 import org.spectral.asm.core.common.Opcode
+import org.spectral.asm.core.execution.ExecutionFrame
+import org.spectral.asm.core.execution.value.LongValue
 
 @Opcode(value=9)
 class LCONST_0 : Instruction(9) {
+
+  override fun execute(frame: ExecutionFrame) {
+    frame.push(LongValue(0L))
+  }
 
   override fun accept(visitor: MethodVisitor) {
     visitor.visitInsn(opcode)
