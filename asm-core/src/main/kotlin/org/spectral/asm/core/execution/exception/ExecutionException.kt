@@ -1,4 +1,4 @@
-package org.spectral.asm.execution.exception
+package org.spectral.asm.core.execution.exception
 
 open class ExecutionException : RuntimeException {
 

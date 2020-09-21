@@ -1,5 +1,7 @@
 package org.spectral.asm.core.execution
 
+import org.spectral.asm.core.execution.value.AbstractValue
+
 /**
  * Represents a value in the LVT or that has been pushed or popped to/from the stack.
  * Holds references to the [ExecutionFrame]s which have pushed or poppled this value.
@@ -10,6 +12,11 @@ package org.spectral.asm.core.execution
 interface ExecutionValue {
 
     /**
+     * The associated stack data value
+     */
+    val data: AbstractValue
+
+    /**
      * The frame which pushed or created this value.
      */
     val pusher: ExecutionFrame
@@ -18,17 +25,5 @@ interface ExecutionValue {
      * The frames which have popped this value.
      */
     val poppers: List<ExecutionFrame>
-
-    /**
-     * The original frame which this frame was dupped from.
-     */
-    val copySource: ExecutionFrame?
-
-    /**
-     * Gets the value casted to [T] of this object.
-     *
-     * @return T
-     */
-    fun <T> value(): T
 
 }

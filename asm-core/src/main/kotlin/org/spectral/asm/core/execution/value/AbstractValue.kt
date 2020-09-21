@@ -1,7 +1,7 @@
-package org.spectral.asm.execution.value
+package org.spectral.asm.core.execution.value
 
 import org.objectweb.asm.Type
-import org.spectral.asm.execution.exception.ExecutionException
+import org.spectral.asm.core.execution.exception.ExecutionException
 
 abstract class AbstractValue(private val data: Any?) {
 

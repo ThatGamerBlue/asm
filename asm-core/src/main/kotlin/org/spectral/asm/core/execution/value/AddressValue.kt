@@ -1,7 +1,7 @@
-package org.spectral.asm.execution.value
+package org.spectral.asm.core.execution.value
 
 import org.spectral.asm.core.code.Instruction
-import org.spectral.asm.execution.ext.UNKNOWN_TYPE
+import org.spectral.asm.core.execution.ext.UNKNOWN_TYPE
 
 class AddressValue(private val data: Instruction) : AbstractValue(data) {
 

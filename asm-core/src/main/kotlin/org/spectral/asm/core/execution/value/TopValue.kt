@@ -1,7 +1,7 @@
-package org.spectral.asm.execution.value
+package org.spectral.asm.core.execution.value
 
-import org.spectral.asm.execution.exception.ExecutionException
-import org.spectral.asm.execution.ext.UNKNOWN_TYPE
+import org.spectral.asm.core.execution.exception.ExecutionException
+import org.spectral.asm.core.execution.ext.UNKNOWN_TYPE
 
 class TopValue : AbstractValue(null) {
 
