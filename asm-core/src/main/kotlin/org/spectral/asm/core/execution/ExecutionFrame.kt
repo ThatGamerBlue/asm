@@ -87,4 +87,12 @@ interface ExecutionFrame {
      * @return ExecutionValue
      */
     fun pop(index: Int): ExecutionValue
+
+    /**
+     * Loads a value from the LVT
+     *
+     * @param index Int
+     * @return AbstractValue
+     */
+    fun load(index: Int): AbstractValue
 }

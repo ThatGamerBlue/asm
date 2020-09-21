@@ -74,4 +74,22 @@ class Frame internal constructor(
 
         return execValue
     }
+
+    fun peek(): FrameValue {
+        return stack[0]
+    }
+
+    /**
+     * Loads a value from the LVT.
+     *
+     * @param index Int
+     * @return AbstractValue
+     */
+    override fun load(index: Int): AbstractValue {
+        val lvtValue = lvt[index].data.copy()
+        push(lvtValue)
+        loads.add(peek())
+
+        return lvtValue
+    }
 }
