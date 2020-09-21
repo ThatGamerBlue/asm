@@ -7,6 +7,7 @@ import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=186)
 class INVOKEDYNAMIC : Instruction(186) {
+
   override fun accept(visitor: MethodVisitor) {
 
   }
