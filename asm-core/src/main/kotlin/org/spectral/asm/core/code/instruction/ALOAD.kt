@@ -6,11 +6,16 @@ import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.code.type.VarInstruction
 import org.spectral.asm.core.code.type.InstructionType
 import org.spectral.asm.core.common.Opcode
+import org.spectral.asm.core.execution.ExecutionFrame
 
 @Opcode(value=25)
 class ALOAD(override val index: Int) : Instruction(25), VarInstruction {
 
   override val type = InstructionType.OBJECT
+
+  override fun execute(frame: ExecutionFrame) {
+    frame.load(index)
+  }
 
   override fun accept(visitor: MethodVisitor) {
     visitor.visitVarInsn(opcode, index)
