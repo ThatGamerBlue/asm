@@ -2,6 +2,7 @@ package org.spectral.asm.core.code
 
 import org.objectweb.asm.MethodVisitor
 import org.spectral.asm.core.Method
+import org.spectral.asm.core.code.type.VarInstruction
 import org.objectweb.asm.Label as AsmLabel
 
 /**
@@ -74,6 +75,39 @@ class Code(val method: Method) {
 
     fun clear() {
         insnList.clear()
+    }
+
+    fun findLabel(label: AsmLabel): Label = method.findLabel(label)
+
+    fun calculateMaxLocals(): Int {
+        var max = -1
+
+        instructions.forEach { insn ->
+            if(insn is VarInstruction) {
+                val slots = insn.index + insn.type.slots
+                if(slots > max) {
+                    max = slots
+                }
+            }
+        }
+
+        val argSlots = getMethodTypeSlots()
+        if(argSlots > max) {
+            max = argSlots
+        }
+
+        return max
+    }
+
+    private fun getMethodTypeSlots(): Int {
+        var num = if(method.isStatic) 0 else 1
+        val argTypes = method.type.argumentTypes
+
+        argTypes.forEach {
+            num += it.size
+        }
+
+        return num
     }
 
     fun resetLabels() {

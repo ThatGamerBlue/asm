@@ -8,7 +8,7 @@ import org.spectral.asm.core.code.type.JumpInstruction
 import org.spectral.asm.core.common.Opcode
 
 @Opcode(value=167)
-class GOTO(override val label: Label) : Instruction(167), JumpInstruction {
+class GOTO(override var label: Label) : Instruction(167), JumpInstruction {
 
   override fun accept(visitor: MethodVisitor) {
     visitor.visitJumpInsn(opcode, label.label)

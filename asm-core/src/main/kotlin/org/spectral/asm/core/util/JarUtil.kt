@@ -2,6 +2,7 @@ package org.spectral.asm.core.util
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.util.CheckClassAdapter
 import org.spectral.asm.core.Class
 import org.spectral.asm.core.ClassPool
 import org.spectral.asm.core.common.NonLoadingClassWriter
@@ -56,13 +57,30 @@ object JarUtil {
         pool.forEach { cls ->
             jos.putNextEntry(JarEntry(cls.name + ".class"))
 
-            val writer = NonLoadingClassWriter(pool, ClassWriter.COMPUTE_MAXS)
-            cls.accept(writer)
+            val writer = NonLoadingClassWriter(pool, 0)
+            val cca = CheckClassAdapter(writer, false)
 
-            jos.write(writer.toByteArray())
+            cls.accept(cca)
+
+            val bytes = writer.toByteArray()
+
+            validateDataFlow(cls.name, bytes)
+
+            jos.write(bytes)
             jos.closeEntry()
         }
 
         jos.close()
+    }
+
+    private fun validateDataFlow(name: String, data: ByteArray) {
+        try {
+            val reader = ClassReader(data)
+            val writer = ClassWriter(reader, 0)
+            val cv = CheckClassAdapter(writer, true)
+            reader.accept(cv, 0)
+        } catch(e : Exception) {
+            throw e
+        }
     }
 }

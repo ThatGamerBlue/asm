@@ -22,6 +22,8 @@ import org.objectweb.asm.Label as AsmLabel
  */
 class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node, ClassMember, Annotatable {
 
+    private var visited = false
+
     override var access = 0
 
     override var name = ""
@@ -185,6 +187,16 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         arguments.add(arg)
     }
 
+    override fun visitFrame(
+            type: Int,
+            numLocal: Int,
+            local: Array<Any?>?,
+            numStack: Int,
+            stack: Array<Any?>?
+    ) {
+        code.add(FrameNode(type, numLocal, local, numStack, stack))
+    }
+
     override fun visitMaxs(maxStack: Int, maxLocals: Int) {
         this.code.maxStack = maxStack
         this.code.maxLocals = maxLocals
@@ -213,7 +225,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
          */
     }
 
-    private fun findLabel(label: AsmLabel): Label {
+    fun findLabel(label: AsmLabel): Label {
         if(!code.labelMap.containsKey(label)) {
             code.labelMap[label] = Label(label)
         }
@@ -229,7 +241,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
         }
 
         if(code.size > 0) {
-            code.resetLabels()
+            //code.resetLabels()
 
             visitor.visitCode()
 
@@ -271,7 +283,8 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
                 }
             }
 
-            visitor.visitMaxs(code.maxStack, code.maxLocals)
+            visitor.visitMaxs(code.maxStack, code.calculateMaxLocals())
+            visited = true
         }
 
         visitor.visitEnd()

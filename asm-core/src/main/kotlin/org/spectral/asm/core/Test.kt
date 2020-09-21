@@ -17,7 +17,7 @@ object Test {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val pool = JarUtil.readJar("gamepack.jar")
+        val pool = JarUtil.readJar("gamepack-deob.jar")
         println()
 
         JarUtil.writeJar(pool, "gamepack-output.jar")
