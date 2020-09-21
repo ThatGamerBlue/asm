@@ -2,7 +2,7 @@ package org.spectral.asm.core.execution.value
 
 import org.objectweb.asm.Type
 
-class ObjectValue(private val data: Any, override val type: Type) : AbstractValue(data) {
+class ObjectValue(private val data: Any?, override val type: Type) : AbstractValue(data) {
 
     override val value = data
 
