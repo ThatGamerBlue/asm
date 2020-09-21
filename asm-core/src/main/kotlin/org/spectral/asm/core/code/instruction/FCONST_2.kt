@@ -5,9 +5,15 @@ import org.objectweb.asm.MethodVisitor
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.code.type.ConstantInstruction
 import org.spectral.asm.core.common.Opcode
+import org.spectral.asm.core.execution.ExecutionFrame
+import org.spectral.asm.core.execution.value.FloatValue
 
 @Opcode(value=13)
 class FCONST_2 : Instruction(13) {
+
+  override fun execute(frame: ExecutionFrame) {
+    frame.push(FloatValue(2F))
+  }
 
   override fun accept(visitor: MethodVisitor) {
     visitor.visitInsn(opcode)
