@@ -25,14 +25,21 @@ class Frame private constructor(private val execution: Execution, private val me
      */
     var currentInsnIndex = -1
 
-    private var currentState: ExecutionState? = null
+    /**
+     * The current [ExecutionState] of the frame.
+     */
+    var currentState: ExecutionState? = null
+        private set
 
     /**
      * The current state of the frame execution.
      */
     var status = FrameStatus.READY
 
-    private var jumpTo: Instruction? = null
+    /**
+     * The instruction to jump to after the current execution step.
+     */
+    var jumpTo: Instruction? = null
 
     /**
      * Initializes and creates a frame with given arguments.
@@ -117,9 +124,15 @@ class Frame private constructor(private val execution: Execution, private val me
         }
     }
 
+    /**
+     * Steps the execution forward by one.
+     * Returns true if the execution can continue, false if the execution was terminal.
+     *
+     * @return Boolean
+     */
     fun step(): Boolean {
         when {
-            currentInsnIndex >= method.code.instructions.size -> {
+            ++currentInsnIndex >= method.code.instructions.size -> {
                 return false
             }
             jumpTo != null -> {
@@ -127,7 +140,7 @@ class Frame private constructor(private val execution: Execution, private val me
                 jumpTo = null
             }
             else -> {
-                currentInsn = method.code.instructions[++currentInsnIndex]
+                currentInsn = method.code.instructions[currentInsnIndex]
             }
         }
 
@@ -141,7 +154,14 @@ class Frame private constructor(private val execution: Execution, private val me
         }
 
         currentState = state
-        currentInsn!!.execute(this)
+
+        try {
+            currentInsn!!.execute(this)
+        } catch(e : ExecutionException) {
+            //e.printStackTrace()
+        }
+
+        states.add(currentState!!)
 
         return true
     }

@@ -1,6 +1,9 @@
 package org.spectral.asm.core.execution
 
+import org.objectweb.asm.util.Printer
 import org.spectral.asm.core.code.Instruction
+import org.spectral.asm.core.code.Label
+import org.spectral.asm.core.code.LineNumber
 
 /**
  * Represents a snapshot in time of a [Frame] after a given
@@ -36,4 +39,7 @@ class ExecutionState(val insn: Instruction) {
      */
     val pops = mutableListOf<StackValue>()
 
+    override fun toString(): String {
+        return insn.toString()
+    }
 }
