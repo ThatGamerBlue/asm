@@ -5,7 +5,6 @@ import org.spectral.asm.core.Method
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.execution.exception.ExecutionException
 import org.spectral.asm.core.execution.value.*
-import java.util.*
 
 /**
  * Represents a JVM execution frame as per Oracle JVM Spec.
@@ -24,7 +23,7 @@ class Frame private constructor(private val execution: Execution, private val me
     /**
      * The current state of the frame execution.
      */
-    var state = FrameExecutionState.READY
+    var status = FrameStatus.READY
 
     /**
      * Initializes and creates a frame with given arguments.
@@ -68,7 +67,7 @@ class Frame private constructor(private val execution: Execution, private val me
             }
         }
 
-        state = FrameExecutionState.INITIALIZED
+        status = FrameStatus.INITIALIZED
     }
 
     /**
@@ -87,17 +86,20 @@ class Frame private constructor(private val execution: Execution, private val me
     val states = mutableListOf<ExecutionState>()
 
     /**
-     * Executed the frame until the frame execution finished or [predicate] matches.
-     * In which case the frame's execution is paused.
-     *
-     * @param predicate Function1<Frame, Boolean>
+     * Whether this frame terminated with a returning value.
      */
-    fun execute(predicate: (Frame) -> Boolean) {
-        if(state.priority < FrameExecutionState.INITIALIZED.priority) {
+    var returnValue: AbstractValue? = null
+
+    /**
+     * Executed the frame until the frame execution finished or predicate matches.
+     * In which case the frame's execution is paused.
+     */
+    fun execute() {
+        if(status.priority < FrameStatus.INITIALIZED.priority) {
             throw ExecutionException("Frame has not been initialized.")
         }
 
-        state = FrameExecutionState.EXECUTING
+        status = FrameStatus.EXECUTING
 
         /*
          * .... the madness begins
@@ -107,12 +109,12 @@ class Frame private constructor(private val execution: Execution, private val me
     /**
      * Represents the state of the frame.
      */
-    enum class FrameExecutionState(val priority: Int) {
+    enum class FrameStatus(val priority: Int) {
         READY(0),
         INITIALIZED(1),
         EXECUTING(2),
-        PAUSED(3),
-        JUMPED(4),
+        INVOKING(3),
+        PAUSED(4),
         TERMINATED(5);
     }
 }
