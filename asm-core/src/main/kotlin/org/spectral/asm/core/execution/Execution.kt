@@ -4,6 +4,8 @@ import org.spectral.asm.core.ClassPool
 import org.spectral.asm.core.Method
 import org.spectral.asm.core.execution.exception.ExecutionException
 import org.spectral.asm.core.execution.value.AbstractValue
+import org.spectral.asm.core.execution.value.DoubleValue
+import org.spectral.asm.core.execution.value.LongValue
 
 /**
  * Represents the execution of a method as the JVM would.
@@ -107,9 +109,18 @@ class Execution private constructor(val pool: ClassPool) {
 
             else if(currentFrame?.status == Frame.FrameStatus.TERMINATED && frame.status == Frame.FrameStatus.INVOKING) {
                 /*
-                 * TODO push the returned value of the currentFrame if it exists to
-                 *  the jump back frame's stack.
+                 * Push the return value if any exists.
                  */
+                if(currentFrame!!.returnValue != null) {
+                    if(currentFrame!!.returnValue is LongValue || currentFrame!!.returnValue is DoubleValue) {
+                        frame.pushWide(currentFrame!!.popWide())
+                    } else {
+                        frame.push(currentFrame!!.pop())
+                    }
+                }
+
+                frame.status = Frame.FrameStatus.EXECUTING
+
                 return frame
             }
         }

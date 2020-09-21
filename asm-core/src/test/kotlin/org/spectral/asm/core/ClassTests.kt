@@ -13,6 +13,10 @@ class ClassTests {
     val testClass = JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("TestClass.class").readAllBytes())
     val messageClass = JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("Message.class").readAllBytes())
 
+    init {
+        pool.init()
+    }
+
     @Test
     fun `read test classes`() {
         assertTrue { pool.size == 2 }

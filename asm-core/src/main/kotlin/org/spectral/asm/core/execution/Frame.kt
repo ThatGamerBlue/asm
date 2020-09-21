@@ -4,6 +4,7 @@ import org.objectweb.asm.Type
 import org.spectral.asm.core.Method
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.execution.exception.ExecutionException
+import org.spectral.asm.core.execution.exception.StackUnderflowException
 import org.spectral.asm.core.execution.value.*
 
 /**
@@ -13,7 +14,7 @@ import org.spectral.asm.core.execution.value.*
  * @property execution The [Execution] instance this frame belongs to.
  * @constructor
  */
-class Frame private constructor(private val execution: Execution, private val method: Method) {
+class Frame private constructor(val execution: Execution, private val method: Method) {
 
     /**
      * The current instruction the execution is on.
@@ -201,6 +202,10 @@ class Frame private constructor(private val execution: Execution, private val me
     }
 
     fun pop(index: Int): AbstractValue {
+        if(index >= stack.size) {
+            throw StackUnderflowException("Popped value off empty stack.")
+        }
+
         val value = stack.removeAt(index)
         val stackValue = currentState!!.stack.removeAt(index)
 
