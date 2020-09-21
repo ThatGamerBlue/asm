@@ -1,7 +1,6 @@
 package org.spectral.asm.core.execution
 
 import org.spectral.asm.core.ClassPool
-import org.spectral.asm.core.Method
 
 /**
  * Represents a execution simulation of a method.
