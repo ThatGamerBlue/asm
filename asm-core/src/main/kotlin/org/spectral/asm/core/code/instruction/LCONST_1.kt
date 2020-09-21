@@ -12,7 +12,7 @@ import org.spectral.asm.core.execution.value.LongValue
 class LCONST_1 : Instruction(10) {
 
   override fun execute(frame: ExecutionFrame) {
-    frame.push(LongValue(1L))
+    frame.pushWide(LongValue(1L))
   }
 
   override fun accept(visitor: MethodVisitor) {
