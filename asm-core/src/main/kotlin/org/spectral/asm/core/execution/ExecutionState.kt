@@ -7,10 +7,14 @@ import org.spectral.asm.core.code.Instruction
  * instruction has been executed.
  *
  * @property insn The instruction executed during this state.
- * @property frame The live [Frame] this state belongs to.
  * @constructor
  */
-class ExecutionState(val insn: Instruction, private val frame: Frame) {
+class ExecutionState(val insn: Instruction) {
+
+    constructor(insn: Instruction, other: ExecutionState) : this(insn) {
+        this.stack.addAll(other.stack)
+        this.lvt.addAll(other.lvt)
+    }
 
     /**
      * The stack after the [insn] was executed.
@@ -31,10 +35,5 @@ class ExecutionState(val insn: Instruction, private val frame: Frame) {
      * The values popped from the stack during this execution state.
      */
     val pops = mutableListOf<StackValue>()
-
-    /**
-     * The values loaded from the LVT during this execution state.
-     */
-    val loads = mutableListOf<StackValue>()
 
 }

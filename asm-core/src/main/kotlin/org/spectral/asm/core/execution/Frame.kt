@@ -21,9 +21,18 @@ class Frame private constructor(private val execution: Execution, private val me
     var currentInsn: Instruction? = null
 
     /**
+     * The current instruction index
+     */
+    var currentInsnIndex = -1
+
+    private var currentState: ExecutionState? = null
+
+    /**
      * The current state of the frame execution.
      */
     var status = FrameStatus.READY
+
+    private var jumpTo: Instruction? = null
 
     /**
      * Initializes and creates a frame with given arguments.
@@ -101,9 +110,84 @@ class Frame private constructor(private val execution: Execution, private val me
 
         status = FrameStatus.EXECUTING
 
-        /*
-         * .... the madness begins
-         */
+        while(status == FrameStatus.EXECUTING) {
+            if(!step()) {
+                status = FrameStatus.TERMINATED
+            }
+        }
+    }
+
+    fun step(): Boolean {
+        when {
+            currentInsnIndex >= method.code.instructions.size -> {
+                return false
+            }
+            jumpTo != null -> {
+                currentInsn = jumpTo
+                jumpTo = null
+            }
+            else -> {
+                currentInsn = method.code.instructions[++currentInsnIndex]
+            }
+        }
+
+        val state = if(currentState != null) {
+            ExecutionState(currentInsn!!, currentState!!)
+        } else {
+            ExecutionState(currentInsn!!).apply {
+                this.stack.addAll(stack.map { StackValue(it.value) })
+                this.lvt.addAll(lvt.map { StackValue(it.value) })
+            }
+        }
+
+        currentState = state
+        currentInsn!!.execute(this)
+
+        return true
+    }
+
+    fun push(value: AbstractValue) {
+        push(0, value)
+    }
+
+    fun pushWide(value: AbstractValue) {
+        push(value)
+        push(TopValue())
+    }
+
+    /**
+     * Pushes a value to the stack.
+     *
+     * @param index Index to push to.
+     * @param value AbstractValue
+     */
+    fun push(index: Int, value: AbstractValue) {
+       val stackValue = value.stackValue ?: StackValue(value).apply { value.stackValue = this }
+
+        stackValue.pusher = currentState!!
+        currentState!!.pushes.add(stackValue)
+
+        currentState!!.stack.add(index, stackValue)
+        stack.add(index, value)
+    }
+
+    fun pop(): AbstractValue {
+        return pop(0)
+    }
+
+    fun popWide(): AbstractValue {
+        pop()
+        return pop()
+    }
+
+    fun pop(index: Int): AbstractValue {
+        val value = stack.removeAt(index)
+        val stackValue = currentState!!.stack.removeAt(index)
+
+        stackValue.poppers.add(currentState!!)
+        currentState!!.pops.add(stackValue)
+
+        return value
     }
 
     /**

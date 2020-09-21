@@ -1,9 +1,12 @@
 package org.spectral.asm.core.execution.value
 
 import org.objectweb.asm.Type
+import org.spectral.asm.core.execution.StackValue
 import org.spectral.asm.core.execution.exception.ExecutionException
 
 abstract class AbstractValue(private val data: Any?) {
+
+    internal var stackValue: StackValue? = null
 
     abstract val type: Type
 

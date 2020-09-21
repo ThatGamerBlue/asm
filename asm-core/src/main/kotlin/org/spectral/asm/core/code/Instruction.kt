@@ -1,7 +1,7 @@
 package org.spectral.asm.core.code
 
 import org.objectweb.asm.MethodVisitor
-import org.spectral.asm.core.execution.ExecutionState
+import org.spectral.asm.core.execution.Frame
 import org.spectral.asm.core.execution.exception.ExecutionException
 
 /**
@@ -35,7 +35,7 @@ abstract class Instruction(val opcode: Int) {
      *
      * @param frame ExecutionFrame
      */
-    open fun execute(frame: ExecutionState) { throw ExecutionException(UnsupportedOperationException("Execution for opcode $opcode not implemented.")) }
+    open fun execute(frame: Frame) { throw ExecutionException(UnsupportedOperationException("Execution for opcode $opcode not implemented.")) }
 
     /**
      * Logic to copy the instruction and mapped labels.

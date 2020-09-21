@@ -3,4 +3,5 @@ ext {
     guava = "29.0-jre"
     classgraph = "4.8.90"
     reflectasm = "1.11.9"
+    junit = "5.7.0"
 }
