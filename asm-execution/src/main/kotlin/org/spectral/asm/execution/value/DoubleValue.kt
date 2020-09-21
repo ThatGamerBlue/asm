@@ -2,7 +2,7 @@ package org.spectral.asm.execution.value
 
 import org.objectweb.asm.Type
 
-class DoubleValue(private var data: Double) : AbstractValue(data) {
+class DoubleValue(private var data: Double) : AbstractValue(data), WideValue {
 
     override val type = Type.DOUBLE_TYPE
 
