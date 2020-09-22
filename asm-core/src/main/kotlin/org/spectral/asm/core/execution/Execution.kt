@@ -55,6 +55,15 @@ class Execution private constructor(val pool: ClassPool) {
     }
 
     /**
+     * Pops the top frame off the [frameStack] and adds it to
+     * the [frames] list at the top to reverse the order.
+     */
+    private fun popFrame() {
+        val frame = frameStack.pop()
+        frames.add(0, frame)
+    }
+
+    /**
      * Run the execution.
      */
     fun run() {
@@ -62,6 +71,17 @@ class Execution private constructor(val pool: ClassPool) {
             /*
              * Peek at the top frame in the stack.
              */
+            val frame = frameStack.peek()
+
+            /*
+             * If the frame is currently executing, step the instruction execution. Otherwise,
+             * pop the frame off the frame stack.
+             */
+            if(frame.executing) {
+                frame.execute()
+            } else {
+                this.popFrame()
+            }
         }
     }
 

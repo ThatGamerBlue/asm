@@ -1,7 +1,5 @@
 package org.spectral.asm.core.execution
 
-import org.spectral.asm.core.execution.value.AbstractValue
-
 /**
  * Responsible for watching changes to the given [frame] and outputting
  * [ExecutionState] instances.
@@ -19,7 +17,7 @@ class StateRecorder(val frame: Frame) {
     /**
      * Creates a new state from the previous state.
      */
-    fun record() {
+    fun start() {
         state = if(::state.isInitialized) ExecutionState(frame.currentInsn!!, state)
                 else ExecutionState(frame.currentInsn!!)
     }
@@ -32,10 +30,18 @@ class StateRecorder(val frame: Frame) {
      */
     fun stop() {
         if(!::state.isInitialized) {
-            this.record()
+            this.start()
         }
 
         frame.execution.states.add(state)
+    }
+
+    internal fun recordPush(value: StackValue) {
+        recordPush(0, value)
+    }
+
+    internal fun recordPop() {
+        recordPop(0)
     }
 
     /**

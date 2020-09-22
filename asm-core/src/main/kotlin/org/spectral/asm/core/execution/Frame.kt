@@ -4,8 +4,10 @@ import org.objectweb.asm.Type
 import org.spectral.asm.core.Method
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.execution.exception.ExecutionException
+import org.spectral.asm.core.execution.exception.StackOverflowException
 import org.spectral.asm.core.execution.value.AbstractValue
 import org.spectral.asm.core.execution.value.ObjectValue
+import org.spectral.asm.core.execution.value.TopValue
 import java.util.*
 
 /**
@@ -20,7 +22,7 @@ class Frame(val execution: Execution, val method: Method) {
     /**
      * Whether this frame is currently executing.
      */
-    var executing = true
+    var executing = false
 
     /**
      * The current instruction which is going to be executed.
@@ -52,7 +54,7 @@ class Frame(val execution: Execution, val method: Method) {
     /**
      * The state recorder instance for this frame.
      */
-    private val stateRecorder = StateRecorder(this)
+    private val recorder = StateRecorder(this)
 
     /**
      * Initializes the frame with given argument values.
@@ -100,14 +102,72 @@ class Frame(val execution: Execution, val method: Method) {
      *
      * @return Boolean
      */
-    fun execute(): Boolean {
+    fun execute() {
         if(executing) {
+            /*
+             * Execute the current instruction if its not null.
+             */
+            if(currentInsn == null) {
+                executing = false
+                return
+            }
 
+            /*
+             * Start the state recorder.
+             */
+            recorder.start()
 
+            try {
+                currentInsn!!.execute(this)
+            } catch (e : ExecutionException) {
+                System.err.println("WARN : ${e.message}")
+            }
 
-            return true
+            /*
+             * Stop the state recorder.
+             */
+            recorder.stop()
+
+            /**
+             * The the current instruction to the next.
+             */
+            currentInsn = currentInsn!!.next
+        }
+    }
+
+    /**
+     * Pushes a 32bit [value] to the top of the stack.
+     *
+     * @param value AbstractValue
+     */
+    fun push(value: AbstractValue) {
+        push(0, value)
+    }
+
+    /**
+     * Pushes a wide or 64bit [value] to the top of the stack.
+     *
+     * @param value AbstractValue
+     */
+    fun pushWide(value: AbstractValue) {
+        push(value)
+        push(TopValue())
+    }
+
+    /**
+     * Pushes a value to the stack at index [index].
+     *
+     * @param index Int
+     * @param value AbstractValue
+     */
+    fun push(index: Int, value: AbstractValue) {
+        if(stack.size >= maxStack) {
+            throw StackOverflowException("Max Stack Size: $maxStack")
         }
 
-        return false
+        stack.add(index, value)
+
+        val stackValue = value.stackValue ?: StackValue(value).apply { value.stackValue = this }
+        recorder.recordPush(index, stackValue)
     }
 }
