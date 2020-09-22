@@ -2,6 +2,7 @@ package org.spectral.asm.core.code
 
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
+import org.spectral.asm.core.execution.Frame
 
 /**
  * Represents a JVM label instruction which signals the start of
@@ -18,6 +19,12 @@ class Label(var label: Label) : Instruction(-1) {
      * @constructor
      */
     constructor() : this(Label())
+
+    override fun execute(frame: Frame) {
+        /*
+         * Nothing to do.
+         */
+    }
 
     override fun accept(visitor: MethodVisitor) {
         visitor.visitLabel(label)

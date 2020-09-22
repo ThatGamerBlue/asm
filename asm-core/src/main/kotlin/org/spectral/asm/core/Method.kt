@@ -81,6 +81,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
          * Update instruction refs.
          */
         code.instructions.forEach { insn ->
+            insn.code = code
             when(insn) {
                 is FieldInstruction -> {
                     val cls = pool[insn.field.owner.name]
@@ -283,7 +284,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
                 }
             }
 
-            visitor.visitMaxs(code.maxStack, code.calculateMaxLocals())
+            visitor.visitMaxs(code.maxStack, code.maxLocals)
             visited = true
         }
 

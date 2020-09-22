@@ -15,6 +15,20 @@ import java.util.jar.JarOutputStream
 
 object JarUtil {
 
+    fun readClass(bytes: ByteArray): Class {
+        return loadClass(ClassPool(), bytes)
+    }
+
+    fun loadClass(pool: ClassPool, bytes: ByteArray): Class {
+        val cls = Class(pool)
+        val reader = ClassReader(bytes)
+
+        reader.accept(cls, ClassReader.SKIP_FRAMES)
+        pool.add(cls)
+
+        return cls
+    }
+
     fun readJar(filePath: String): ClassPool {
         val pool = ClassPool()
         val file = File(filePath)

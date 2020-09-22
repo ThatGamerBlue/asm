@@ -2,6 +2,7 @@ package org.spectral.asm.core.code
 
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import org.spectral.asm.core.execution.Frame
 
 
 class FrameNode private constructor(opcode: Int) : Instruction(opcode) {
@@ -32,6 +33,12 @@ class FrameNode private constructor(opcode: Int) : Instruction(opcode) {
             Opcodes.F_SAME1 -> this.stack = asArrayList(1, stack)
             else -> throw IllegalArgumentException()
         }
+    }
+
+    override fun execute(frame: Frame) {
+        /*
+         * Nothing to do.
+         */
     }
 
     override fun accept(visitor: MethodVisitor) {

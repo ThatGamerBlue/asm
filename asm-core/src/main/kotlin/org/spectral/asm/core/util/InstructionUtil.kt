@@ -1,8 +1,6 @@
 package org.spectral.asm.core.util
 
-import com.esotericsoftware.reflectasm.ConstructorAccess
 import io.github.classgraph.ClassGraph
-import org.spectral.asm.core.ClassPool
 import org.spectral.asm.core.code.Code
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.common.Opcode
