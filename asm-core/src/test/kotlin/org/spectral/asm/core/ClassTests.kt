@@ -1,5 +1,6 @@
 package org.spectral.asm.core
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.spectral.asm.core.execution.Execution
@@ -13,7 +14,8 @@ class ClassTests {
     val testClass = JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("TestClass.class").readAllBytes())
     val messageClass = JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("Message.class").readAllBytes())
 
-    init {
+    @BeforeEach
+    fun before() {
         pool.init()
     }
 

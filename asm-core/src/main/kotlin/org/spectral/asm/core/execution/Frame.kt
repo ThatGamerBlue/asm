@@ -167,7 +167,58 @@ class Frame(val execution: Execution, val method: Method) {
 
         stack.add(index, value)
 
+        /*
+         * Record the push to the state recorder.
+         */
         val stackValue = value.stackValue ?: StackValue(value).apply { value.stackValue = this }
         recorder.recordPush(index, stackValue)
+    }
+
+    /**
+     * Pops a 32bit value from the top of the stack.
+     *
+     * @return AbstractValue
+     */
+    fun pop(): AbstractValue {
+       return pop(0)
+    }
+
+    /**
+     * Pops a 64bit value from the top of the stack.
+     *
+     * @return AbstractValue
+     */
+    fun popWide(): AbstractValue {
+       val top = pop()
+
+        /*
+         * Verify this is a top value.
+         */
+        if(top !is TopValue) {
+            throw ExecutionException("Expected 'TopValue' when popping 64bit values. Found: '$top'.")
+        }
+
+        return pop()
+    }
+
+    /**
+     * Pops a value from the stack located at [index]
+     *
+     * @param index Int
+     * @return AbstractValue
+     */
+    fun pop(index: Int): AbstractValue {
+        val value = stack.pop()
+
+        /*
+         * Record the state to the state recorder.
+         */
+        recorder.recordPop(index)
+
+        return value
+    }
+
+    override fun toString(): String {
+        return "FRAME[$method]"
     }
 }
