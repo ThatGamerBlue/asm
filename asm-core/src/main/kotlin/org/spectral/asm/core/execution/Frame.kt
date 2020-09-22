@@ -5,6 +5,7 @@ import org.spectral.asm.core.Method
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.execution.exception.ExecutionException
 import org.spectral.asm.core.execution.exception.StackOverflowException
+import org.spectral.asm.core.execution.exception.StackUnderflowException
 import org.spectral.asm.core.execution.value.AbstractValue
 import org.spectral.asm.core.execution.value.ObjectValue
 import org.spectral.asm.core.execution.value.TopValue
@@ -17,7 +18,7 @@ import java.util.*
  * @property method The method this frame is of.
  * @constructor
  */
-class Frame(val execution: Execution, val method: Method) {
+class Frame(internal val execution: Execution, private val method: Method) {
 
     /**
      * Whether this frame is currently executing.
@@ -61,7 +62,7 @@ class Frame(val execution: Execution, val method: Method) {
      *
      * @param args List<AbstractValue>
      */
-    fun init(args: List<AbstractValue>) {
+    fun init(args: List<AbstractValue>, instance: Any?) {
         if(currentInsn != null) {
             throw ExecutionException("Frame has already been initialized.")
         }
@@ -79,10 +80,11 @@ class Frame(val execution: Execution, val method: Method) {
          * the LVT at the zero index.
          */
         if(!method.isStatic) {
-            /*
-             * Add support for instanced initialization later.
-             */
-            lvt.add(ObjectValue(null, Type.getObjectType("java/lang/Object")))
+            if(instance != null) {
+                lvt.add(instance as AbstractValue)
+            } else {
+                lvt.add(ObjectValue(null, Type.getObjectType("java/lang/Object")))
+            }
         }
 
         /*
@@ -208,6 +210,10 @@ class Frame(val execution: Execution, val method: Method) {
      * @return AbstractValue
      */
     fun pop(index: Int): AbstractValue {
+        if(stack.isEmpty()) {
+            throw StackUnderflowException("Popped value off empty stack.")
+        }
+
         val value = stack.pop()
 
         /*
@@ -216,6 +222,18 @@ class Frame(val execution: Execution, val method: Method) {
         recorder.recordPop(index)
 
         return value
+    }
+
+    /**
+     * Signals a method invocation. Creates a new frame for the method and pushes it to the
+     * execution frame stack.
+     *
+     * @param method Method
+     * @param args List<AbstractValue>
+     * @param instance Class?
+     */
+    internal fun invokeMethod(method: Method, args: List<AbstractValue>, instance: Any?) {
+        execution.createFrame(method, args, instance)
     }
 
     override fun toString(): String {

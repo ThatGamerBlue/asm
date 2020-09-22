@@ -41,12 +41,12 @@ class Execution private constructor(val pool: ClassPool) {
      * @param args List<AbstractValue>
      * @return AbstractValue
      */
-    fun createFrame(method: Method, args: List<AbstractValue>) {
+    fun createFrame(method: Method, args: List<AbstractValue>, instance: Any?) {
         /*
          * Create a new frame.
          */
         val frame = Frame(this, method)
-        frame.init(args)
+        frame.init(args, instance)
 
         /*
          * Push the new frame to the frame stack.
@@ -100,7 +100,7 @@ class Execution private constructor(val pool: ClassPool) {
              * Create an initial method frame and push it to the top
              * of the frame stack.
              */
-            execution.createFrame(method, args)
+            execution.createFrame(method, args, null)
 
             /*
              * Run the execution.

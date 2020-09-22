@@ -11,8 +11,11 @@ import kotlin.test.assertTrue
 class ClassTests {
 
     val pool = ClassPool()
-    val testClass = JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("TestClass.class").readAllBytes())
-    val messageClass = JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("Message.class").readAllBytes())
+
+    init {
+        JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("TestClass.class").readAllBytes())
+        JarUtil.loadClass(pool, ClassTests::class.java.getResourceAsStream("Message.class").readAllBytes())
+    }
 
     @BeforeEach
     fun before() {
