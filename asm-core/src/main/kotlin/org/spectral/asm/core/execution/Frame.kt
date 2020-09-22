@@ -230,6 +230,31 @@ class Frame(internal val execution: Execution, private val method: Method) {
     }
 
     /**
+     * Loads a value from the LVT at [index]
+     *
+     * @param index Int
+     * @return AbstractValue
+     */
+    fun load(index: Int): AbstractValue {
+        val value = lvt[index]
+        recorder.recordRead(index)
+        return value
+    }
+
+    /**
+     * Stores a [value] at index [index] in the frame LVT.
+     *
+     * @param index Int
+     * @param value AbstractValue
+     */
+    fun store(index: Int, value: AbstractValue) {
+        lvt[index] = value
+
+        val stackValue = value.stackValue ?: StackValue(value).apply { value.stackValue = this }
+        recorder.recordWrite(index, stackValue)
+    }
+
+    /**
      * Signals a method invocation. Creates a new frame for the method and pushes it to the
      * execution frame stack.
      *

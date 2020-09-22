@@ -21,6 +21,10 @@ class ExecutionState(val insn: Instruction) {
 
     val pops = mutableListOf<StackValue>()
 
+    val writes = mutableListOf<StackValue>()
+
+    val reads = mutableListOf<StackValue>()
+
     override fun toString(): String {
         return insn.toString()
     }
