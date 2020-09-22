@@ -22,6 +22,16 @@ abstract class Instruction(val opcode: Int) {
      */
     val offset: Int get() = code.indexOf(this)
 
+    val next: Instruction? get() {
+        return if(offset + 1 >= code.instructions.size) null
+        else code.instructions[offset + 1]
+    }
+
+    val prev: Instruction? get() {
+        return if(offset - 1 <= code.instructions.size) null
+        else code.instructions[offset - 1]
+    }
+
     /**
      * Makes the given visitor visit this instruction.
      *
