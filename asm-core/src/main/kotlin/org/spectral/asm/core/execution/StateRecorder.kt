@@ -37,14 +37,6 @@ class StateRecorder(val frame: Frame) {
         frame.execution.states.add(state)
     }
 
-    internal fun recordPush(value: StackValue) {
-        recordPush(0, value)
-    }
-
-    internal fun recordPop() {
-        recordPop(0)
-    }
-
     /**
      * Records a push to the stack.
      *
@@ -65,5 +57,27 @@ class StateRecorder(val frame: Frame) {
         val value = state.stack.removeAt(index)
         value.poppers.add(state)
         state.pops.add(value)
+    }
+
+    /**
+     * Records a write to the LVT.
+     *
+     * @param index Int
+     * @param value StackValue
+     */
+    internal fun recordWrite(index: Int, value: StackValue) {
+        value.writes.add(state)
+        state.writes.add(value)
+        state.lvt[index] = value
+    }
+
+    /**
+     * Records a read from the LVT.
+     *
+     * @param index Int
+     */
+    internal fun recordRead(index: Int, value: StackValue) {
+        value.reads.add(state)
+        state.reads.add(value)
     }
 }

@@ -15,10 +15,10 @@ class NonLoadingClassWriter(val pool: ClassPool, flags: Int) : ClassWriter(flags
         val c2 = pool[type2]
 
         if(c1 == null && c2 == null) {
-            try {
-                return super.getCommonSuperClass(type1, type2)
+            return try {
+                super.getCommonSuperClass(type1, type2)
             } catch (e: Exception) {
-                return "java/lang/Object"
+                "java/lang/Object"
             }
         }
 

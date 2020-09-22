@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.0' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.4.10' apply false
     id 'io.gitlab.arturbosch.detekt' version '1.12.0' apply false
 }
 
@@ -21,7 +21,7 @@ allprojects {
     apply plugin: 'maven-publish'
 
     group 'org.spectral.asm'
-    version '0.2.0'
+    version '1.0.0'
 
     repositories {
         mavenLocal()
@@ -41,7 +41,6 @@ allprojects {
         implementation "org.ow2.asm:asm:$asm"
         implementation "org.ow2.asm:asm-commons:$asm"
         implementation "org.ow2.asm:asm-util:$asm"
-        implementation "org.ow2.asm:asm-tree:$asm"
         implementation "com.google.guava:guava:$guava"
 
         testImplementation "org.junit.jupiter:junit-jupiter-api:$junit"

@@ -20,6 +20,16 @@ class StackValue(val value: AbstractValue) {
      */
     val poppers = mutableListOf<ExecutionState>()
 
+    /**
+     * The states which wrote this value to the LVT.
+     */
+    val writes = mutableListOf<ExecutionState>()
+
+    /**
+     * The states which read this value from the LVT.
+     */
+    val reads = mutableListOf<ExecutionState>()
+
     override fun toString(): String {
         return value.toString()
     }

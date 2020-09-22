@@ -6,11 +6,16 @@ import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.code.type.VarInstruction
 import org.spectral.asm.core.code.type.InstructionType
 import org.spectral.asm.core.common.Opcode
+import org.spectral.asm.core.execution.Frame
 
 @Opcode(value=55)
 class LSTORE(override val index: Int) : Instruction(55), VarInstruction {
 
   override val type = InstructionType.LONG
+
+  override fun execute(frame: Frame) {
+    frame.store(index, frame.popWide().copy())
+  }
 
   override fun accept(visitor: MethodVisitor) {
     visitor.visitVarInsn(opcode, index)
