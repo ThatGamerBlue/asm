@@ -237,7 +237,8 @@ class Frame(internal val execution: Execution, private val method: Method) {
      */
     fun load(index: Int): AbstractValue {
         val value = lvt[index]
-        recorder.recordRead(index)
+        val stackValue = value.stackValue ?: StackValue(value).apply { value.stackValue = this }
+        recorder.recordRead(index, stackValue)
         return value
     }
 
@@ -248,8 +249,7 @@ class Frame(internal val execution: Execution, private val method: Method) {
      * @param value AbstractValue
      */
     fun store(index: Int, value: AbstractValue) {
-        lvt[index] = value
-
+        lvt.add(index, value)
         val stackValue = value.stackValue ?: StackValue(value).apply { value.stackValue = this }
         recorder.recordWrite(index, stackValue)
     }

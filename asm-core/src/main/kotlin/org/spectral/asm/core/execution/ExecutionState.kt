@@ -10,12 +10,12 @@ class ExecutionState(val insn: Instruction) {
 
     constructor(insn: Instruction, other: ExecutionState) : this(insn) {
         stack.addAll(other.stack)
-        lvt.addAll(other.lvt)
+        lvt = other.lvt
     }
 
     val stack = mutableListOf<StackValue>()
 
-    val lvt = mutableListOf<StackValue>()
+    var lvt = arrayOfNulls<StackValue>(insn.code.maxStack)
 
     val pushes = mutableListOf<StackValue>()
 

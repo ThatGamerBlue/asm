@@ -68,7 +68,7 @@ class StateRecorder(val frame: Frame) {
     internal fun recordWrite(index: Int, value: StackValue) {
         value.writes.add(state)
         state.writes.add(value)
-        state.lvt.add(index, value)
+        state.lvt[index] = value
     }
 
     /**
@@ -76,8 +76,7 @@ class StateRecorder(val frame: Frame) {
      *
      * @param index Int
      */
-    internal fun recordRead(index: Int) {
-       val value = state.lvt[index]
+    internal fun recordRead(index: Int, value: StackValue) {
         value.reads.add(state)
         state.reads.add(value)
     }
