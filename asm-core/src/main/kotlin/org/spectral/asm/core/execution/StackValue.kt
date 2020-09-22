@@ -3,24 +3,24 @@ package org.spectral.asm.core.execution
 import org.spectral.asm.core.execution.value.AbstractValue
 
 /**
- * Represents a value which is pushed, popped from the stack or loaded
- * or stored from the LVT.
+ * Represents a value of a stack operand or LV created or accessed by a frame.
  *
- * Holds references to which [ExecutionState] accessed or pushed this value to the stack.
- *
- * @property value The value object stored on the stack.
+ * @property value AbstractValue
  * @constructor
  */
 class StackValue(val value: AbstractValue) {
 
     /**
-     * The state which this value was pushed to the stack in.
+     * The state which this value was pushed to the stack.
      */
     lateinit var pusher: ExecutionState
 
     /**
-     * The states which popped this value off the stack in.
+     * The states which this value was popped from the stack.
      */
     val poppers = mutableListOf<ExecutionState>()
 
+    override fun toString(): String {
+        return value.toString()
+    }
 }

@@ -3,6 +3,7 @@ package org.spectral.asm.core.code
 import org.objectweb.asm.MethodVisitor
 import org.spectral.asm.core.Method
 import org.spectral.asm.core.code.type.VarInstruction
+import java.util.*
 import org.objectweb.asm.Label as AsmLabel
 
 /**
@@ -15,9 +16,9 @@ import org.objectweb.asm.Label as AsmLabel
  */
 class Code(val method: Method) {
 
-    private val insnList = mutableListOf<Instruction>()
+    private val insnList = LinkedList<Instruction>()
 
-    val instructions: List<Instruction> get() = insnList
+    val instructions: LinkedList<Instruction> get() = insnList
 
     var maxStack = 0
 
@@ -50,19 +51,11 @@ class Code(val method: Method) {
     }
 
     fun add(insn: Instruction) {
-        insnList.add(insn)
+        insnList.addLast(insn)
     }
 
     fun insert(insn: Instruction) {
-        insnList.add(0, insn)
-    }
-
-    fun insertAfter(target: Instruction, insn: Instruction) {
-        insnList.add(indexOf(target) + 1, insn)
-    }
-
-    fun insertBefore(target: Instruction, insn: Instruction) {
-        insnList.add(indexOf(target), insn)
+        insnList.addFirst(insn)
     }
 
     fun remove(insn: Instruction) {
@@ -75,50 +68,5 @@ class Code(val method: Method) {
 
     fun clear() {
         insnList.clear()
-    }
-
-    fun findLabel(label: AsmLabel): Label = method.findLabel(label)
-
-    fun calculateMaxLocals(): Int {
-        var max = -1
-
-        instructions.forEach { insn ->
-            if(insn is VarInstruction) {
-                val slots = insn.index + insn.type.slots
-                if(slots > max) {
-                    max = slots
-                }
-            }
-        }
-
-        val argSlots = getMethodTypeSlots()
-        if(argSlots > max) {
-            max = argSlots
-        }
-
-        return max
-    }
-
-    private fun getMethodTypeSlots(): Int {
-        var num = if(method.isStatic) 0 else 1
-        val argTypes = method.type.argumentTypes
-
-        argTypes.forEach {
-            num += it.size
-        }
-
-        return num
-    }
-
-    fun resetLabels() {
-        labelMap.clear()
-
-        insnList.forEach { insn ->
-            if(insn is Label) {
-                val label = AsmLabel()
-                insn.label = label
-                labelMap[label] = insn
-            }
-        }
     }
 }

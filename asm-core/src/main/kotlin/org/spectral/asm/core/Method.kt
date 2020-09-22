@@ -283,7 +283,7 @@ class Method(val pool: ClassPool, val owner: Class) : MethodVisitor(ASM9), Node,
                 }
             }
 
-            visitor.visitMaxs(code.maxStack, code.calculateMaxLocals())
+            visitor.visitMaxs(code.maxStack, code.maxLocals)
             visited = true
         }
 
