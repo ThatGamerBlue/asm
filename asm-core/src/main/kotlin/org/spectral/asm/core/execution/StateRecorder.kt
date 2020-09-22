@@ -33,6 +33,7 @@ class StateRecorder(val frame: Frame) {
             this.start()
         }
 
+        frame.states.add(state)
         frame.execution.states.add(state)
     }
 

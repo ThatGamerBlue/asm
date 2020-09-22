@@ -58,6 +58,11 @@ class Frame(internal val execution: Execution, private val method: Method) {
     private val recorder = StateRecorder(this)
 
     /**
+     * The execution states during this frame execution.
+     */
+    val states = mutableListOf<ExecutionState>()
+
+    /**
      * Initializes the frame with given argument values.
      *
      * @param args List<AbstractValue>
