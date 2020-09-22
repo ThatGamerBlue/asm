@@ -41,7 +41,7 @@ class Annotation(val type: Type) : AnnotationVisitor(ASM9) {
         data[name] = array
 
         return object : AnnotationVisitor(ASM9) {
-            override fun visit(name: String, value: Any) { array.add(value) }
+            override fun visit(name: String?, value: Any) { array.add(value) }
             override fun visitAnnotation(name: String, descriptor: String): AnnotationVisitor {
                 val annotation = Annotation(Type.getType(descriptor))
                 array.add(annotation)
