@@ -33,13 +33,11 @@ class INVOKEVIRTUAL(override val method: MethodRef) : Instruction(182), InvokeIn
       }
     }
 
-    val objRef = ObjectValue(null, Type.getObjectType("java/lang/Object"))
-
     /*
      * Create a new frame for method invocation.
      */
     if(method.method != null) {
-      frame.invokeMethod(method.method!!, argValues, objRef)
+      frame.invokeMethod(method.method!!, argValues, null)
     } else {
       frame.push(ObjectValue(null, type.returnType))
     }

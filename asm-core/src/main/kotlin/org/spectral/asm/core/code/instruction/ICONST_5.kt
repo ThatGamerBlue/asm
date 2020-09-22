@@ -4,8 +4,15 @@ import kotlin.String
 import org.objectweb.asm.MethodVisitor
 import org.spectral.asm.core.code.Instruction
 import org.spectral.asm.core.common.Opcode
+import org.spectral.asm.core.execution.Frame
+import org.spectral.asm.core.execution.value.IntValue
+
 @Opcode(value=8)
 class ICONST_5 : Instruction(8) {
+
+  override fun execute(frame: Frame) {
+    frame.push(IntValue(5))
+  }
 
   override fun accept(visitor: MethodVisitor) {
     visitor.visitInsn(opcode)
