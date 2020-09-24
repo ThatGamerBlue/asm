@@ -5,3 +5,4 @@ out/
 *.jar
 !gradle-wrapper.jar
 *.iml
+hs_err_pid*.log
