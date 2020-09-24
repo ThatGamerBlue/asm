@@ -6,3 +6,4 @@ out/
 !gradle-wrapper.jar
 *.iml
 hs_err_pid*.log
+jvm_crash_pid*.log
