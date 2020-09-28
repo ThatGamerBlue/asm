@@ -19,7 +19,7 @@ additional features out of the box. This project was built to be used by various
 
 ## Download
 
-#### Gradle
+#### Gradle (Groovy DSL)
 Add the Spectral maven repository to your **build.gradle** file.
 ```groovy
 repositories {
@@ -31,5 +31,22 @@ Add the following to your dependencies closure.
 ```groovy
 dependencies {
     implementation "org.spectral.asm:asm-core:1.0.0"
+}
+```
+
+#### Gradle (Kotlin DSL)
+Add the Spectral maven repository to your **build.gradle.kts** file.
+```kotlin
+repositories {
+    maven {
+        url = uri("https://repo.spectralclient.org/repository/spectral/")
+    }
+}
+```
+
+Add the following to your dependencies block.
+```kotlin
+dependencies {
+    implementation("org.spectral.asm:asm-core:1.0.0")
 }
 ```
